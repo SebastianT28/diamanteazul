@@ -1,0 +1,15 @@
+// From MingCute Icon — used via Iconify (https://iconify.design)
+import type { SVGProps } from "react";
+
+export function ClockLineIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8.36 11.167l2.475 2.474l4.951-4.951M20 11c0 5.396-5.896 9.108-7.565 10.05a.87.87 0 0 1-.87 0C9.895 20.108 4 16.396 4 11a8 8 0 1 1 16 0"/>
+    </svg>
+  );
+}
+

@@ -1,0 +1,13 @@
+// Icons from MingCute Icon (https://iconify.design/?prefix=mingcute).
+export { WhatsappLineIcon } from "./whatsapp-line";
+export { SafeShieldLineIcon } from "./safe-shield-line";
+export { ClockLineIcon } from "./clock-line";
+export { SparklesLineIcon } from "./sparkles-line";
+export { CheckLineIcon } from "./check-line";
+export { LocationLineIcon } from "./location-line";
+export { ArrowLeftLineIcon } from "./arrow-left-line";
+export { ArrowRightLineIcon } from "./arrow-right-line";
+export { RulerLineIcon } from "./ruler-line";
+export { User2LineIcon } from "./user-2-line";
+export { StarLineIcon } from "./star-line";
+export { DownLineIcon } from "./down-line";

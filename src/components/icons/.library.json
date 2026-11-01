@@ -1,0 +1,20 @@
+{
+  "library": "mingcute",
+  "prefix": "mingcute",
+  "source": "iconify",
+  "installedAt": "2026-11-01T07:37:12.158Z",
+  "icons": [
+    "arrow-left-line",
+    "arrow-right-line",
+    "check-line",
+    "clock-line",
+    "down-line",
+    "location-line",
+    "ruler-line",
+    "safe-shield-line",
+    "sparkles-line",
+    "star-line",
+    "user-2-line",
+    "whatsapp-line"
+  ]
+}
