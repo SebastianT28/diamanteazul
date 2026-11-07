@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactStrictMode: true,
   poweredByHeader: false,
+  compress: true,
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   turbopack: {
     rules: {
       "*.css": {

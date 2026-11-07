@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { PACKAGES_DATA, getPackageBySlug } from "@/data/packages"
@@ -16,6 +17,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: PackagePageProps): Promise<Metadata> {
+  "use cache"
   const { slug } = await params
   const pkg = getPackageBySlug(slug)
 
@@ -31,7 +33,8 @@ export async function generateMetadata({
   }
 }
 
-export default async function PackageDetailPage({ params }: PackagePageProps) {
+async function PackageDetailContent({ params }: PackagePageProps) {
+  "use cache"
   const { slug } = await params
   const pkg = getPackageBySlug(slug)
 
@@ -39,9 +42,15 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
     notFound()
   }
 
+  return <PackageDetailInteractive pkg={pkg} />
+}
+
+export default function PackageDetailPage({ params }: PackagePageProps) {
   return (
     <main>
-      <PackageDetailInteractive pkg={pkg} />
+      <Suspense fallback={null}>
+        <PackageDetailContent params={params} />
+      </Suspense>
     </main>
   )
 }

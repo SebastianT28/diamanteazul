@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Outfit } from "next/font/google"
 import "./globals.css"
 import { SiteHeader } from "@/components/layout/site-header"
@@ -7,14 +7,27 @@ import { SiteFooter } from "@/components/layout/site-footer"
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
+  preload: true,
+  adjustFontFallback: true,
 })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#F7FAFC",
+}
+
 export const metadata: Metadata = {
-  title: "Diamante Azul | Alquiler de Juegos Inflables para Fiestas en Lima",
+  metadataBase: new URL("https://diamanteazul.pe"),
+  title: "Diamante Azul | Alquiler de Juegos Inflables para Fiestas y Eventos",
   description:
-    "Alquiler profesional de inflables para cumpleaños infantiles, reuniones familiares, colegios y empresas en Lima Moderna. Seguridad, limpieza y puntualidad.",
+    "Pequeños momentos. Gran felicidad. Juegos inflables hermosos y seguros para cumpleaños y eventos inolvidables en Lima.",
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({
@@ -23,8 +36,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className={`${outfit.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
+    <html
+      lang="es"
+      data-scroll-behavior="smooth"
+      className={`${outfit.variable} h-full antialiased`}
+    >
+      <body id="index" className="flex min-h-full flex-col font-sans">
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <SiteFooter />
