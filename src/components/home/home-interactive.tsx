@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 type FilterTier = "all" | "premium" | "medio" | "basico";
@@ -427,7 +428,18 @@ export function HomeInteractive() {
           3. FULL-WIDTH VIDEO HERO (.video-hero.hbr-hero-v2) + WAVE + USPS
           ======================================================================== */}
       <section className="video-hero hbr-hero-v2">
-        <div className="video-bg-placeholder" aria-hidden="true" />
+        <div className="video-bg-placeholder" aria-hidden="true">
+          <Image
+            src="/images/home/home_hero_portada-02.webp"
+            alt="Niños jugando felices en castillo inflable pastel de Diamante Azul"
+            fill
+            priority
+            fetchPriority="high"
+            sizes="100vw"
+            quality={85}
+            className="hbr-hero-bg-image"
+          />
+        </div>
         <div className="video-overlay">
           <div className="hbr-hero-copy">
             <h1>
