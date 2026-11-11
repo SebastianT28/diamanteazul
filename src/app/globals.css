@@ -1140,6 +1140,10 @@ a.hbr-mnav__help {
     min-height: 440px;
   }
 
+  .video-hero.hbr-hero-v2 .hbr-hero-bg-image {
+    object-position: 73% 22%;
+  }
+
   .video-hero.hbr-hero-v2 .video-overlay {
     align-items: center;
     padding: 24px 20px calc(var(--hbr-wave-height) + 18px);
