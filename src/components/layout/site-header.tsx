@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { buildWhatsAppUrl } from "@/data/packages"
 
@@ -394,13 +395,22 @@ export function SiteHeader() {
             </nav>
           </div>
 
-          {/* Center Empty Grey Logo Placeholder */}
+          {/* Center Brand Logo */}
           <div className="hbr-header__logo">
             <Link
               href="/"
-              className="hbr-header__logo-placeholder da-grey-placeholder"
-              aria-label="Logo Diamante Azul"
-            />
+              className="hbr-header__logo-link"
+              aria-label="Diamante Azul — Ir al inicio"
+            >
+              <Image
+                src="/images/home/logo_diamante_azul.webp"
+                alt="Diamante Azul"
+                width={172}
+                height={58}
+                priority
+                className="hbr-header__logo-img"
+              />
+            </Link>
           </div>
 
           {/* Right Action Capsule */}

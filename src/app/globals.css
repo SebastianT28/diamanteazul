@@ -445,20 +445,31 @@ body {
   top: 12px;
 }
 
-/* Center Logo Placeholder */
+/* Center Brand Logo */
 .hbr-header__logo {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.hbr-header__logo-placeholder {
-  width: 130px;
-  height: 58px;
-  border-radius: 12px;
-  font-size: 11px;
-  line-height: 1.2;
+.hbr-header__logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
+  line-height: 0;
+  transition: transform 180ms ease;
+}
+
+.hbr-header__logo-link:hover {
+  transform: scale(1.02);
+}
+
+.hbr-header__logo-img {
+  width: 172px;
+  height: 58px;
+  object-fit: contain;
+  display: block;
 }
 
 /* Right Capsule Button */
@@ -687,15 +698,15 @@ body {
   }
 
   .hbr-header .hbr-header__pill {
-    grid-template-columns: minmax(0, 1fr) 105px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     min-height: 78px;
     padding: 10px 16px !important;
     gap: 8px;
   }
 
-  .hbr-header__logo-placeholder {
-    width: 96px;
-    height: 46px;
+  .hbr-header__logo-img {
+    width: 142px;
+    height: 48px;
   }
 
   .hbr-header__toggle-label {
