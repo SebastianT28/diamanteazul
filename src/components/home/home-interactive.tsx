@@ -23,37 +23,37 @@ const STORY_MOMENTS = [
     title: "Tardes en sala o terraza",
     description:
       "Nuestros modelos compactos como Piscina de Pelotas, Soft Play y Castillos 3×3m se adaptan a interiores, cocheras y terrazas.",
-    image: "/images/catalogo/soft-play.webp",
+    image: "/images/home/home_momento_1_sala.webp",
   },
   {
     title: "Sol y diversión en el jardín",
     description:
       "Lleva nuestros castillos Dreamy Pastel o circuitos de obstáculos al jardín y convierte una tarde soleada en un gran evento.",
-    image: "/images/catalogo/castillo-de-ensueno.webp",
+    image: "/images/home/home_momento_2_jardin.webp",
   },
   {
     title: "Tardes de amigos más felices",
     description:
       "Sus amigos favoritos, un espacio seguro con personal de apoyo y 5 horas continuas para saltar y reír juntos.",
-    image: "/images/catalogo/arcoiris-magico.webp",
+    image: "/images/home/home_momento_3_amigos.webp",
   },
   {
     title: "Días refrescantes de verano",
     description:
       "Sorprende a grandes y chicos con nuestro Aquaroller, Piscina con Botes Flotantes o una fiesta con Super Cañón de Espuma.",
-    image: "/images/catalogo/aquaroller.webp",
+    image: "/images/home/home_momento_4_familia.webp",
   },
   {
     title: "Cumpleaños y eventos con estilo",
     description:
       "Desde la Bubble House con globos hasta nuestra línea White Trend que armoniza con cualquier decoración temática.",
-    image: "/images/catalogo/bubble-house.webp",
+    image: "/images/home/home_momento_5_cumpleanos.webp",
   },
   {
-    title: "Recuerdos en 360° y fotografía",
+    title: "Diversión sin preocupaciones",
     description:
-      "Captura cada sonrisa con nuestra Plataforma 360°, el Domo Overhead LED y la Estación de Fotos con impresiones al instante.",
-    image: "/images/catalogo/plataforma-360.webp",
+      "Llegamos puntuales a tu evento, realizamos el montaje y desinfección completa, y acompañamos con personal de apoyo.",
+    image: "/images/home/home_momento_6_instalacion.webp",
   },
 ];
 
@@ -610,7 +610,15 @@ export function HomeInteractive() {
           <div className="hb-story__moments">
             {STORY_MOMENTS.map((moment) => (
               <article key={moment.title} className="hb-story__moment">
-                <div className="hb-story__photo da-grey-placeholder" />
+                <div className="hb-story__photo">
+                  <Image
+                    src={moment.image}
+                    alt={moment.title}
+                    fill
+                    sizes="(max-width: 650px) 50vw, (max-width: 1100px) 33vw, 400px"
+                    className="hb-story__photo-img"
+                  />
+                </div>
                 <h3>{moment.title}</h3>
                 <p>{moment.description}</p>
               </article>

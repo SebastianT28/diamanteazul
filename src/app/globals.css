@@ -1815,11 +1815,13 @@ a.hbr-mnav__help {
 }
 
 .hb-story__photo {
+  position: relative;
   width: 100%;
   aspect-ratio: 1.22;
   border-radius: 24px;
   margin-bottom: 17px;
   overflow: hidden;
+  background: var(--da-surface-tint);
 }
 
 .hb-story__moment h3 {
