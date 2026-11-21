@@ -101,9 +101,13 @@ export function PackageDetailInteractive({
   }
 
   const whatsappUrl = React.useMemo(() => {
-    const customMessage = `Hola Diamante Azul, deseo consultar disponibilidad y reservar *${pkg.title}* (${activeSize.label} — ${activeSize.price}).`
+    const timePart =
+      pkg.slug === "plataforma-360"
+        ? activeSize.label
+        : `${activeSize.label} · ${pkg.rentalDurationPill}`
+    const customMessage = `Hola Diamante Azul, deseo consultar disponibilidad y reservar *${pkg.title}* (${timePart} — ${activeSize.price}).`
     return buildWhatsAppUrl({ customMessage })
-  }, [pkg.title, activeSize.label, activeSize.price])
+  }, [pkg.slug, pkg.title, pkg.rentalDurationPill, activeSize.label, activeSize.price])
 
   return (
     <main className="hbr-pdp">
@@ -268,29 +272,73 @@ export function PackageDetailInteractive({
 
             <div className="product-information-divider" />
 
-            {/* Size / Plan Selector */}
+            {/* Separated Medida & Tiempo Selector Pills */}
             <div
               className="product-variants-row"
               role="radiogroup"
-              aria-label={pkg.variantLabel}
+              aria-label={`${pkg.variantLabel} y Tiempo`}
             >
-              <span className="product-variants-label">{pkg.variantLabel}</span>
-              {pkg.sizeOptions.map((option, idx) => {
-                const isActive = idx === selectedSizeIdx
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isActive}
-                    className={`size-pill ${isActive ? "is-active" : ""}`}
-                    onClick={() => setSelectedSizeIdx(idx)}
-                  >
-                    <span className="size-pill__radio">✓</span>
-                    <span>{option.label}</span>
-                  </button>
-                )
-              })}
+              {pkg.slug === "plataforma-360" ? (
+                <>
+                  <div className="product-variants-group">
+                    <span className="product-variants-label">Medida</span>
+                    <span className="size-pill is-active">
+                      <span className="size-pill__radio">✓</span>
+                      <span>2.5m × 2.5m</span>
+                    </span>
+                  </div>
+                  <div className="product-variants-group">
+                    <span className="product-variants-label">Tiempo</span>
+                    {pkg.sizeOptions.map((option, idx) => {
+                      const isActive = idx === selectedSizeIdx
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={isActive}
+                          className={`size-pill ${isActive ? "is-active" : ""}`}
+                          onClick={() => setSelectedSizeIdx(idx)}
+                        >
+                          <span className="size-pill__radio">✓</span>
+                          <span>{option.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="product-variants-group">
+                    <span className="product-variants-label">
+                      {pkg.variantLabel}
+                    </span>
+                    {pkg.sizeOptions.map((option, idx) => {
+                      const isActive = idx === selectedSizeIdx
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={isActive}
+                          className={`size-pill ${isActive ? "is-active" : ""}`}
+                          onClick={() => setSelectedSizeIdx(idx)}
+                        >
+                          <span className="size-pill__radio">✓</span>
+                          <span>{option.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div className="product-variants-group">
+                    <span className="product-variants-label">Tiempo</span>
+                    <span className="size-pill is-active">
+                      <span className="size-pill__radio">✓</span>
+                      <span>{pkg.rentalDurationPill}</span>
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Same-Category Switcher Grid */}

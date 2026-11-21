@@ -2724,12 +2724,19 @@ a.hbr-mnav__help {
   margin-top: 4px;
 }
 
-/* Size Selector Pills (Medida) */
+/* Size Selector Pills (Medida & Tiempo) */
 .hbr-pdp .product-variants-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px 22px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.hbr-pdp .product-variants-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -2737,7 +2744,7 @@ a.hbr-mnav__help {
   font-size: 15px;
   font-weight: 500;
   color: var(--da-ink);
-  margin-right: 4px;
+  margin-right: 2px;
 }
 
 .hbr-pdp .size-pill {
