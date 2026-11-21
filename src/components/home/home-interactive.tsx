@@ -520,16 +520,22 @@ export function HomeInteractive() {
                     <div className="hbr-catalog-card__sizes">
                       {pkg.slug === "arcoiris-magico" ? (
                         <>
-                          <span className="hbr-catalog-card__sizes-label">
-                            Medidas
+                          <span className="hbr-catalog-card__size-group">
+                            <span className="hbr-catalog-card__sizes-label">
+                              Medidas
+                            </span>
+                            <span className="hbr-catalog-card__size">
+                              6×5×4m
+                            </span>
                           </span>
-                          <span className="hbr-catalog-card__size">
-                            6×5×4m
+                          <span className="hbr-catalog-card__size-group">
+                            <span className="hbr-catalog-card__sizes-label">
+                              Alquiler
+                            </span>
+                            <span className="hbr-catalog-card__size">
+                              5 hrs
+                            </span>
                           </span>
-                          <span className="hbr-catalog-card__sizes-label">
-                            Alquiler
-                          </span>
-                          <span className="hbr-catalog-card__size">5 hrs</span>
                         </>
                       ) : (
                         <>

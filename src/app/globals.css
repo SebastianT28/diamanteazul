@@ -1522,17 +1522,25 @@ a.hbr-mnav__help {
 }
 
 .hbr-catalog-card__sizes {
-  grid-column: 1;
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px 12px;
   flex-wrap: wrap;
   margin-top: 2px;
+}
+
+.hbr-catalog-card__size-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .hbr-catalog-card__sizes-label {
   color: var(--da-muted);
   font-size: 12px;
+  line-height: 1;
   font-weight: 300;
 }
 
