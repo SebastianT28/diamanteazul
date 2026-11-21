@@ -623,19 +623,15 @@ export function PackageDetailInteractive({
                           <div className="hbr-pdp-reviews__stars">★★★★★</div>
                           <p className="hbr-pdp-reviews__quote">{rev.quote}</p>
                           <div className="hbr-pdp-reviews__person">
-                            <span
-                              className="hbr-pdp-reviews__avatar"
-                              style={
-                                rev.avatarBg
-                                  ? {
-                                      background: rev.avatarBg,
-                                      color: rev.avatarColor,
-                                    }
-                                  : undefined
-                              }
-                            >
-                              {rev.initials}
-                            </span>
+                            <div className="hbr-pdp-reviews__avatar">
+                              <Image
+                                src={rev.image ?? pkg.image}
+                                alt={rev.district}
+                                width={56}
+                                height={56}
+                                className="hbr-pdp-reviews__thumb"
+                              />
+                            </div>
                             <div>
                               <p className="hbr-pdp-reviews__name">
                                 {rev.name}
@@ -660,19 +656,15 @@ export function PackageDetailInteractive({
                           <div className="hbr-pdp-reviews__stars">★★★★★</div>
                           <p className="hbr-pdp-reviews__quote">{rev.quote}</p>
                           <div className="hbr-pdp-reviews__person">
-                            <span
-                              className="hbr-pdp-reviews__avatar"
-                              style={
-                                rev.avatarBg
-                                  ? {
-                                      background: rev.avatarBg,
-                                      color: rev.avatarColor,
-                                    }
-                                  : undefined
-                              }
-                            >
-                              {rev.initials}
-                            </span>
+                            <div className="hbr-pdp-reviews__avatar">
+                              <Image
+                                src={rev.image ?? pkg.image}
+                                alt={rev.district}
+                                width={56}
+                                height={56}
+                                className="hbr-pdp-reviews__thumb"
+                              />
+                            </div>
                             <div>
                               <p className="hbr-pdp-reviews__name">
                                 {rev.name}

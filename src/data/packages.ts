@@ -90,6 +90,7 @@ export interface PackageReviewItem {
   name: string
   initials: string
   district: string
+  image?: string
   avatarBg?: string
   avatarColor?: string
 }
@@ -190,55 +191,79 @@ const DEFAULT_REVIEW_COLUMNS: PackageReviewItem[][] = [
   [
     {
       quote:
-        "Excelente servicio de Diamante Azul. Llegaron puntuales, todo impecable y los niños se divirtieron las 5 horas sin parar.",
-      name: "Sofía Martínez",
-      initials: "SM",
-      district: "Evento Familiar",
+        "Alquilamos el Soft Play para el primer añito de mi hija y quedó hermoso. Los bebés jugaron seguros las 5 horas completas.",
+      name: "Valeria Mendoza",
+      initials: "VM",
+      district: "Soft Play",
+      image: "/images/catalogo/soft-play.webp",
     },
     {
       quote:
-        "La atención por WhatsApp fue súper rápida y clara. Nos ayudaron a elegir el modelo ideal para las medidas de nuestro jardín.",
-      name: "Romina Torres",
-      initials: "RT",
-      district: "Cumpleaños Infantil",
-      avatarBg: "#FCE9EE",
-      avatarColor: "#9B4D5E",
+        "El Castillo Blanco con Tobogán se vio precioso con la decoración de globos que incluyeron. Todas las fotos salieron de revista.",
+      name: "Carolina Ríos",
+      initials: "CR",
+      district: "Castillo Blanco con Tobogán",
+      image: "/images/catalogo/castillo-blanco-con-tobogan.webp",
     },
-  ],
-  [
     {
       quote:
-        "Los equipos lucen como nuevos, limpios y muy bien cuidados. El personal de apoyo estuvo atento durante toda la celebración.",
+        "La atención por WhatsApp fue inmediata. Nos recomendaron el Castillo 3 en 1 para nuestro espacio y los niños no pararon de saltar.",
       name: "Diego Garrido",
       initials: "DG",
-      district: "Celebración en Casa",
-    },
-    {
-      quote:
-        "Muy recomendados por su puntualidad y presentación. Se encargaron del montaje y desmontaje sin que tuviéramos que preocuparnos por nada.",
-      name: "Andrea Salazar",
-      initials: "AS",
-      district: "Fiesta Infantil",
-      avatarBg: "#EAECF7",
-      avatarColor: "#4E578C",
+      district: "Castillo 3 en 1",
+      image: "/images/catalogo/castillo-3-en-1.webp",
     },
   ],
   [
     {
       quote:
-        "Contratamos con Diamante Azul para nuestro evento y superó nuestras expectativas. Seguridad, limpieza y trato súper amable.",
-      name: "Camila Benavides",
-      initials: "CB",
-      district: "Evento Especial",
+        "El Arcoíris Mágico de la línea Dreamy fue la sensación del cumpleaños. Los tonos pastel y la piscina de pelotas encantaron a todos.",
+      name: "Andrea Salazar",
+      initials: "AS",
+      district: "Arcoíris Mágico",
+      image: "/images/catalogo/arcoiris-magico.webp",
     },
     {
       quote:
-        "Totalmente confiables. Reservamos con el 50% de adelanto y el día de la fiesta estuvieron instalando con total puntualidad.",
+        "Contratamos la Gran Carrera de Obstáculos de 15 metros para el evento del colegio y compitieron tanto niños como papás. ¡Increíble!",
       name: "Rodrigo Paz",
       initials: "RP",
-      district: "Celebración Familiar",
-      avatarBg: "#E3F3F9",
-      avatarColor: "#236B88",
+      district: "Gran Carrera de Obstáculos",
+      image: "/images/catalogo/gran-carrera-de-obstaculos.webp",
+    },
+    {
+      quote:
+        "La Bubble House con el arco de globos y el staff permanente fue el centro de todas las fotos. Súper puntuales y ordenados.",
+      name: "Luciana Torres",
+      initials: "LT",
+      district: "Bubble House",
+      image: "/images/catalogo/bubble-house.webp",
+    },
+  ],
+  [
+    {
+      quote:
+        "El Castillo de Ensueño es aún más lindo en persona. Los niños subían y bajaban por el tobogán pastel felices toda la tarde.",
+      name: "Camila Benavides",
+      initials: "CB",
+      district: "Castillo de Ensueño",
+      image: "/images/catalogo/castillo-de-ensueno.webp",
+    },
+    {
+      quote:
+        "La Plataforma 360° y el Domo Overhead hicieron que todos nuestros invitados se llevaran videos espectaculares al instante en su celular.",
+      name: "Mariana Montes",
+      initials: "MM",
+      district: "Domo Overhead 360",
+      image: "/images/catalogo/domo-overhead-360.webp",
+    },
+    {
+      quote:
+        "El Reloj Demoledor y las Bumper Balls pusieron la adrenalina al máximo. El operador estuvo atento en todo momento.",
+      name: "Sebastián Alarcón",
+      initials: "SA",
+      district: "Reloj Demoledor",
+      image: "/images/catalogo/reloj-demoledor-01.webp",
     },
   ],
 ]
