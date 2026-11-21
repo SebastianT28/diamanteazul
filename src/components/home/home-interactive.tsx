@@ -518,14 +518,31 @@ export function HomeInteractive() {
                     </div>
                     <p className="hbr-catalog-card__subtitle">{pkg.subtitle}</p>
                     <div className="hbr-catalog-card__sizes">
-                      <span className="hbr-catalog-card__sizes-label">
-                        {pkg.cardTagsLabel}
-                      </span>
-                      {pkg.cardTags.map((tag) => (
-                        <span key={tag} className="hbr-catalog-card__size">
-                          {tag}
-                        </span>
-                      ))}
+                      {pkg.slug === "arcoiris-magico" ? (
+                        <>
+                          <span className="hbr-catalog-card__sizes-label">
+                            Medidas
+                          </span>
+                          <span className="hbr-catalog-card__size">
+                            6×5×4m
+                          </span>
+                          <span className="hbr-catalog-card__sizes-label">
+                            Alquiler
+                          </span>
+                          <span className="hbr-catalog-card__size">5 hrs</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="hbr-catalog-card__sizes-label">
+                            {pkg.cardTagsLabel}
+                          </span>
+                          {pkg.cardTags.map((tag) => (
+                            <span key={tag} className="hbr-catalog-card__size">
+                              {tag}
+                            </span>
+                          ))}
+                        </>
+                      )}
                     </div>
                     <div className="hbr-catalog-card__bottom">
                       <div className="product-price-and-shipping">
