@@ -24,7 +24,7 @@ const HOME_JSON_LD = {
   description:
     "Alquiler de juegos inflables en tonos pastel, seguros y 100% desinfectados para fiestas infantiles y eventos familiares en Lima, Perú.",
   url: "https://diamanteazul.pe",
-  telephone: "+51999999999",
+  telephone: "+51948311603",
   email: "hola@diamanteazul.pe",
   address: {
     "@type": "PostalAddress",

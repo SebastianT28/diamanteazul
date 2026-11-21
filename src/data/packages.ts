@@ -98,8 +98,8 @@ export interface InflatablePackage {
 }
 
 export const WHATSAPP_CONFIG = {
-  phone: "51999999999",
-  displayPhone: "+51 999 999 999",
+  phone: "51948311603",
+  displayPhone: "+51 948 311 603",
   businessName: "Diamante Azul",
   legalName: "Diamante Azul Servicios EIRL",
 } as const
@@ -123,9 +123,11 @@ export const EVENT_TYPES = [
 ] as const
 
 export const SOCIAL_LINKS = {
-  instagram: "https://www.instagram.com/diamanteazulaqp",
-  facebook: "https://www.facebook.com/share/1F6tXrvwF8/",
-  tiktok: "https://www.tiktok.com/@diamanteazul360",
+  instagram:
+    "https://www.instagram.com/diamanteazulaqp?utm_source=ig_web_button_share_sheet&dmpr=ZDNlZDc0MzIxNw==",
+  facebook: "https://www.facebook.com/profile.php?id=100089693337295",
+  tiktok:
+    "https://www.tiktok.com/@diamanteazul360?is_from_webapp=1&sender_device=pc",
 } as const
 
 export const MODEL_SWITCHER_ITEMS: ModelSwitcherItem[] = [

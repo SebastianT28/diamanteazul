@@ -2,7 +2,7 @@
 
 import { ChangeEvent, FormEvent, useState } from "react"
 import Link from "next/link"
-import { buildWhatsAppUrl } from "@/data/packages"
+import { buildWhatsAppUrl, WHATSAPP_CONFIG } from "@/data/packages"
 
 const SUBJECT_OPTIONS = [
   "Atención al Cliente y Reservas",
@@ -122,6 +122,18 @@ export function ContactInteractive() {
               Cuéntanos en qué podemos ayudarte usando el formulario, o escribe
               directamente a nuestro equipo.
             </p>
+
+            <div className="hb-contact__support-item">
+              <h3>WhatsApp y Teléfono</h3>
+              <a
+                className="hb-contact__email"
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {WHATSAPP_CONFIG.displayPhone}
+              </a>
+            </div>
 
             <div className="hb-contact__support-item">
               <h3>Escríbenos por correo</h3>

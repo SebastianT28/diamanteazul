@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react"
 import Link from "next/link"
-import { buildWhatsAppUrl } from "@/data/packages"
+import { buildWhatsAppUrl, SOCIAL_LINKS } from "@/data/packages"
 
 export function SiteFooter() {
   const [contactValue, setContactValue] = useState("")
@@ -107,7 +107,7 @@ export function SiteFooter() {
               <span className="hbf-footer__social-label">Síguenos</span>
               <a
                 className="hbf-footer__social"
-                href="https://instagram.com"
+                href={SOCIAL_LINKS.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -116,7 +116,7 @@ export function SiteFooter() {
               </a>
               <a
                 className="hbf-footer__social"
-                href="https://tiktok.com"
+                href={SOCIAL_LINKS.tiktok}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="TikTok"
@@ -125,7 +125,7 @@ export function SiteFooter() {
               </a>
               <a
                 className="hbf-footer__social"
-                href="https://facebook.com"
+                href={SOCIAL_LINKS.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
