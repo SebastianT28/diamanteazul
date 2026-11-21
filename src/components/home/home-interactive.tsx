@@ -3,102 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  PACKAGES_DATA,
+  PRODUCT_CATEGORIES,
+  type ProductCategorySlug,
+} from "@/data/packages";
 
-type FilterTier = "all" | "premium" | "medio" | "basico";
-
-interface CatalogCardItem {
-  id: string;
-  name: string;
-  subtitle: string;
-  tier: Exclude<FilterTier, "all">;
-  href: string;
-  sizesLabel: string;
-  sizes: string[];
-  price: string;
-  regularPrice: string;
-  isNew?: boolean;
-}
-
-const CATALOG_CARDS: CatalogCardItem[] = [
-  {
-    id: "arcoiris-rosa",
-    name: "Paquete Arcoíris Rosa",
-    subtitle: "Nivel Premium · Con tobogán y piscina",
-    tier: "premium",
-    href: "/paquetes/arcoiris-rosa",
-    sizesLabel: "Medidas",
-    sizes: ["3×3m", "4×4m"],
-    price: "S/ 450",
-    regularPrice: "S/ 520",
-  },
-  {
-    id: "clasico-blanco",
-    name: "Paquete Clásico Blanco",
-    subtitle: "Nivel Medio · Con resbaladera",
-    tier: "medio",
-    href: "/paquetes/clasico-blanco",
-    sizesLabel: "Medidas",
-    sizes: ["3×3m", "4×3m"],
-    price: "S/ 350",
-    regularPrice: "S/ 410",
-  },
-  {
-    id: "arcoiris-lavanda",
-    name: "Paquete Arcoíris Lavanda",
-    subtitle: "Nivel Premium · Con tobogán y pelotas",
-    tier: "premium",
-    href: "/paquetes/arcoiris-lavanda",
-    sizesLabel: "Medidas",
-    sizes: ["3×3m", "4×4m"],
-    price: "S/ 450",
-    regularPrice: "S/ 520",
-  },
-  {
-    id: "celeste-diamante",
-    name: "Paquete Celeste Diamante",
-    subtitle: "Nivel Medio · Con resbaladera",
-    tier: "medio",
-    href: "/paquetes/celeste-diamante",
-    sizesLabel: "Medidas",
-    sizes: ["3×3m", "4×3m"],
-    price: "S/ 350",
-    regularPrice: "S/ 410",
-  },
-  {
-    id: "arcoiris-azul",
-    name: "Paquete Arcoíris Azul",
-    subtitle: "Nivel Premium · Circuito completo",
-    tier: "premium",
-    href: "/paquetes/arcoiris-azul",
-    sizesLabel: "Medidas",
-    sizes: ["4×4m", "5×4m"],
-    price: "S/ 480",
-    regularPrice: "S/ 550",
-  },
-  {
-    id: "mini-blanco",
-    name: "Paquete Mini Blanco",
-    subtitle: "Nivel Básico · Compacto interior",
-    tier: "basico",
-    href: "/paquetes/mini-blanco",
-    sizesLabel: "Medida",
-    sizes: ["2.2×2.2m"],
-    price: "S/ 250",
-    regularPrice: "S/ 300",
-  },
-  {
-    id: "mini-arcoiris",
-    name: "Paquete Mini Arcoíris",
-    subtitle: "Nivel Básico · Compacto interior",
-    tier: "basico",
-    href: "/paquetes/mini-arcoiris",
-    sizesLabel: "Medida",
-    sizes: ["2.5×2.5m"],
-    price: "S/ 280",
-    regularPrice: "S/ 330",
-    isNew: true,
-  },
-];
+type FilterCategory = "all" | ProductCategorySlug;
 
 const RIBBON_PHRASES = [
   "Pequeñas aventuras. Recuerdos eternos.",
@@ -111,32 +22,38 @@ const STORY_MOMENTS = [
   {
     title: "Tardes en sala o terraza",
     description:
-      "Nuestros modelos compactos del Paquete Básico caben perfectamente en interiores y departamentos sin ocupar todo el espacio.",
+      "Nuestros modelos compactos como Piscina de Pelotas, Soft Play y Castillos 3×3m se adaptan a interiores, cocheras y terrazas.",
+    image: "/images/catalogo/soft-play.webp",
   },
   {
     title: "Sol y diversión en el jardín",
     description:
-      "Lleva uno de nuestros castillos con tobogán al jardín o parque del condominio y convierte una tarde soleada en un gran evento.",
+      "Lleva nuestros castillos Dreamy Pastel o circuitos de obstáculos al jardín y convierte una tarde soleada en un gran evento.",
+    image: "/images/catalogo/castillo-de-ensueno.webp",
   },
   {
     title: "Tardes de amigos más felices",
     description:
-      "Sus amigos favoritos, un espacio seguro y acolchado, y una razón completamente nueva para saltar y reír juntos durante horas.",
+      "Sus amigos favoritos, un espacio seguro con personal de apoyo y 5 horas continuas para saltar y reír juntos.",
+    image: "/images/catalogo/arcoiris-magico.webp",
   },
   {
-    title: "Parrilladas y reuniones familiares",
+    title: "Días refrescantes de verano",
     description:
-      "Buena conversación para los adultos y un rincón propio y seguro donde los más pequeños disfrutan toda la reunión.",
+      "Sorprende a grandes y chicos con nuestro Aquaroller, Piscina con Botes Flotantes o una fiesta con Super Cañón de Espuma.",
+    image: "/images/catalogo/aquaroller.webp",
   },
   {
-    title: "Cumpleaños en casa con estilo",
+    title: "Cumpleaños y eventos con estilo",
     description:
-      "Colores pastel que armonizan con tu decoración temática, arcos de globos y mesas dulces para fotos espectaculares.",
+      "Desde la Bubble House con globos hasta nuestra línea White Trend que armoniza con cualquier decoración temática.",
+    image: "/images/catalogo/bubble-house.webp",
   },
   {
-    title: "Nosotros instalamos y recogemos",
+    title: "Recuerdos en 360° y fotografía",
     description:
-      "Llegamos puntuales antes de tu evento, dejamos todo desinfectado y listo en 15 minutos, y lo retiramos al terminar.",
+      "Captura cada sonrisa con nuestra Plataforma 360°, el Domo Overhead LED y la Estación de Fotos con impresiones al instante.",
+    image: "/images/catalogo/plataforma-360.webp",
   },
 ];
 
@@ -144,6 +61,7 @@ interface ReviewItem {
   quote: string;
   name: string;
   product: string;
+  image: string;
 }
 
 const REVIEW_COLUMNS: { direction: "up" | "down"; items: ReviewItem[] }[] = [
@@ -152,21 +70,24 @@ const REVIEW_COLUMNS: { direction: "up" | "down"; items: ReviewItem[] }[] = [
     items: [
       {
         quote:
-          "Alquilamos el Paquete Básico para el primer añito de mi hija en departamento y quedó hermoso con la decoración pastel. Súper puntuales y limpios.",
+          "Alquilamos el Soft Play para el primer añito de mi hija y quedó hermoso. Los bebés jugaron seguros las 5 horas completas.",
         name: "Valeria Mendoza",
-        product: "Paquete Mini Blanco",
+        product: "Soft Play",
+        image: "/images/catalogo/soft-play.webp",
       },
       {
         quote:
-          "El color celeste diamante en persona es precioso. No queríamos los típicos inflables chillones y este hizo que todas las fotos del cumple salieran de revista.",
+          "El Castillo Blanco con Tobogán se vio precioso con la decoración de globos que incluyeron. Todas las fotos salieron de revista.",
         name: "Carolina Ríos",
-        product: "Paquete Celeste Diamante",
+        product: "Castillo Blanco con Tobogán",
+        image: "/images/catalogo/castillo-blanco-con-tobogan.webp",
       },
       {
         quote:
-          "La atención por WhatsApp fue inmediata. Nos recomendaron la medida exacta para nuestra cochera y los niños no pararon de saltar en toda la tarde.",
+          "La atención por WhatsApp fue inmediata. Nos recomendaron el Castillo 3 en 1 para nuestro espacio y los niños no pararon de saltar.",
         name: "Diego Garrido",
-        product: "Paquete Clásico Blanco",
+        product: "Castillo 3 en 1",
+        image: "/images/catalogo/castillo-3-en-1.webp",
       },
     ],
   },
@@ -175,21 +96,24 @@ const REVIEW_COLUMNS: { direction: "up" | "down"; items: ReviewItem[] }[] = [
     items: [
       {
         quote:
-          "Lo elegimos porque buscábamos colores suaves en tonos lavanda y rosa para el cumple de mellizas. La piscina de pelotas incluida fue el éxito total.",
+          "El Arcoíris Mágico de la línea Dreamy fue la sensación del cumpleaños. Los tonos pastel y la piscina de pelotas encantaron a todos.",
         name: "Andrea Salazar",
-        product: "Paquete Arcoíris Lavanda",
+        product: "Arcoíris Mágico",
+        image: "/images/catalogo/arcoiris-magico.webp",
       },
       {
         quote:
-          "Llegaron 45 minutos antes, desinfectaron todo frente a nosotros y lo dejaron impecable. Da muchísima tranquilidad alquilar con un equipo así.",
+          "Contratamos la Gran Carrera de Obstáculos de 15 metros para el evento del colegio y compitieron tanto niños como papás. ¡Increíble!",
         name: "Rodrigo Paz",
-        product: "Paquete Arcoíris Azul",
+        product: "Gran Carrera de Obstáculos",
+        image: "/images/catalogo/gran-carrera-de-obstaculos.webp",
       },
       {
         quote:
-          "Es la tercera vez que reservamos con Diamante Azul. Siempre impecables, puntuales y los inflables lucen como nuevos.",
+          "La Bubble House con el arco de globos y el staff permanente fue el centro de todas las fotos. Súper puntuales y ordenados.",
         name: "Luciana Torres",
-        product: "Paquete Mini Arcoíris",
+        product: "Bubble House",
+        image: "/images/catalogo/bubble-house.webp",
       },
     ],
   },
@@ -198,21 +122,24 @@ const REVIEW_COLUMNS: { direction: "up" | "down"; items: ReviewItem[] }[] = [
     items: [
       {
         quote:
-          "El Paquete Arcoíris Rosa es aún más lindo en vivo. Lo armamos para un cumple de 3 años y ni siquiera miraron la mesa de dulces por seguir saltando.",
+          "El Castillo de Ensueño es aún más lindo en persona. Los niños subían y bajaban por el tobogán pastel felices toda la tarde.",
         name: "Camila Benavides",
-        product: "Paquete Arcoíris Rosa",
+        product: "Castillo de Ensueño",
+        image: "/images/catalogo/castillo-de-ensueno.webp",
       },
       {
         quote:
-          "Nuestro hijo pequeño lo llama su castillo de nubes. Súper acolchado, mallas de seguridad transparentes para verlos todo el tiempo. 10/10.",
+          "La Plataforma 360° y el Domo Overhead hicieron que todos nuestros invitados se llevaran videos espectaculares al instante en su celular.",
         name: "Mariana Montes",
-        product: "Paquete Mini Arcoíris",
+        product: "Domo Overhead 360",
+        image: "/images/catalogo/domo-overhead-360.webp",
       },
       {
         quote:
-          "Excelente relación calidad-precio en el Paquete Medio. Vino con alfombra protectora, motor silencioso y pelotas pastel.",
+          "El Reloj Demoledor y las Bumper Balls pusieron la adrenalina al máximo. El operador estuvo atento en todo momento.",
         name: "Sebastián Alarcón",
-        product: "Paquete Celeste Diamante",
+        product: "Reloj Demoledor",
+        image: "/images/catalogo/reloj-demoledor-01.webp",
       },
     ],
   },
@@ -256,7 +183,7 @@ function UspItems() {
           <path d="M7.5 11.5V22.5h13V11.5" />
           <path d="M12 22.5v-5.5h4v5.5" />
         </svg>
-        <span>Para casa, jardín o local</span>
+        <span>5 horas de alquiler por evento</span>
       </li>
       <li>
         <svg
@@ -273,7 +200,7 @@ function UspItems() {
           <circle cx="7.5" cy="19.5" r="2.2" />
           <circle cx="20.5" cy="19.5" r="2.2" />
         </svg>
-        <span>Transporte e instalación gratis</span>
+        <span>Montaje, desmontaje y personal de apoyo</span>
       </li>
       <li>
         <svg
@@ -289,7 +216,7 @@ function UspItems() {
           <path d="M10.5 8.5V7a3.5 3.5 0 0 1 7 0v1.5" />
           <path d="M11 14.5h6" />
         </svg>
-        <span>100% sanitizados antes de cada evento</span>
+        <span>100% limpios, seguros y renovados</span>
       </li>
       <li>
         <svg
@@ -318,14 +245,14 @@ function UspItems() {
             stroke="none"
           />
         </svg>
-        <span>Diseños pastel &amp; accesorios incluidos</span>
+        <span>Castillos, Acuáticos, 360° y Juegos</span>
       </li>
     </>
   );
 }
 
 export function HomeInteractive() {
-  const [activeFilter, setActiveFilter] = useState<FilterTier>("all");
+  const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [isMobileUsps, setIsMobileUsps] = useState(false);
   const [reviewColumnCount, setReviewColumnCount] = useState(3);
 
@@ -337,6 +264,26 @@ export function HomeInteractive() {
 
   const reviewTrackRefs = useRef<(HTMLDivElement | null)[]>([]);
   const reviewGroupRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  /* Sync Category Filter from URL Hash if navigated from Header Mega Menu */
+  useEffect(() => {
+    const syncCategoryFromHash = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#cat-")) {
+        const catSlug = hash.replace("#cat-", "") as ProductCategorySlug;
+        if (PRODUCT_CATEGORIES.some((c) => c.slug === catSlug)) {
+          setActiveFilter(catSlug);
+          const el = document.getElementById("hbr-home-range");
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      }
+    };
+    syncCategoryFromHash();
+    window.addEventListener("hashchange", syncCategoryFromHash);
+    return () => window.removeEventListener("hashchange", syncCategoryFromHash);
+  }, []);
 
   /* Sync Mobile USP Horizontal Marquee Loop (<=767px) */
   useEffect(() => {
@@ -452,7 +399,7 @@ export function HomeInteractive() {
               inolvidables.
             </p>
             <a href="#hbr-home-range" className="hbr-hero-button">
-              Explorar Paquetes
+              Explorar Catálogo
             </a>
           </div>
         </div>
@@ -491,24 +438,25 @@ export function HomeInteractive() {
       </section>
 
       {/* ========================================================================
-          4. PRODUCT RANGE GRID WITH FILTER PILLS (#hbr-home-range)
+          4. PRODUCT RANGE GRID WITH 5 SEGMENT FILTER PILLS (#hbr-home-range)
           ======================================================================== */}
       <section
         id="hbr-home-range"
         className="hbr-home-products"
-        aria-label="Catálogo de paquetes de inflables"
+        aria-label="Catálogo de productos por categoría"
       >
         <div className="hbr-home-range-heading">
           <h2>Encuentra su favorito.</h2>
           <p>
-            Elige el paquete, tamaño y combinación ideal para tu celebración.
+            Explora nuestros {PACKAGES_DATA.length} productos organizados por
+            categoría para tu celebración.
           </p>
         </div>
 
         <div
           className="hbr-home-filters"
           role="toolbar"
-          aria-label="Filtrar paquetes por nivel"
+          aria-label="Filtrar productos por tipo"
         >
           <button
             type="button"
@@ -516,79 +464,77 @@ export function HomeInteractive() {
             aria-pressed={activeFilter === "all"}
             onClick={() => setActiveFilter("all")}
           >
-            Todos los paquetes
+            Todos ({PACKAGES_DATA.length})
           </button>
-          <button
-            type="button"
-            data-filter="premium"
-            aria-pressed={activeFilter === "premium"}
-            onClick={() => setActiveFilter("premium")}
-          >
-            Paquete Premium
-          </button>
-          <button
-            type="button"
-            data-filter="medio"
-            aria-pressed={activeFilter === "medio"}
-            onClick={() => setActiveFilter("medio")}
-          >
-            Paquete Medio
-          </button>
-          <button
-            type="button"
-            data-filter="basico"
-            aria-pressed={activeFilter === "basico"}
-            onClick={() => setActiveFilter("basico")}
-          >
-            Paquete Básico
-          </button>
+          {PRODUCT_CATEGORIES.map((cat) => (
+            <button
+              key={cat.slug}
+              type="button"
+              data-filter={cat.slug}
+              aria-pressed={activeFilter === cat.slug}
+              onClick={() => setActiveFilter(cat.slug)}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
         <div className="hbr-catalog-grid" id="da-catalog-grid">
-          {CATALOG_CARDS.map((card) => {
+          {PACKAGES_DATA.map((pkg) => {
             const isHidden =
-              activeFilter !== "all" && card.tier !== activeFilter;
+              activeFilter !== "all" && pkg.category !== activeFilter;
             return (
               <article
-                key={card.id}
+                key={pkg.slug}
                 className="hbr-catalog-card"
-                data-tier={card.tier}
+                data-tier={pkg.category}
                 hidden={isHidden}
               >
-                <Link className="hbr-catalog-card__link" href={card.href}>
+                <Link
+                  className="hbr-catalog-card__link"
+                  href={`/paquetes/${pkg.slug}`}
+                >
                   <div className="hbr-catalog-card__image">
-                    {card.isNew && (
+                    {pkg.isNew && (
                       <div className="hbr-catalog-card__badge">
                         ★
                         <br />
                         NUEVO
                       </div>
                     )}
-                    <div className="hbr-catalog-card__placeholder da-grey-placeholder" />
+                    <div className="hbr-catalog-card__placeholder">
+                      <Image
+                        src={pkg.image}
+                        alt={pkg.title}
+                        fill
+                        sizes="(max-width: 767px) 50vw, (max-width: 1100px) 33vw, 25vw"
+                        className="hbr-catalog-card__img"
+                      />
+                    </div>
                   </div>
                   <div className="hbr-catalog-card__body">
                     <div className="hbr-catalog-card__title-row">
-                      <h3 className="hbr-catalog-card__name">{card.name}</h3>
+                      <h3 className="hbr-catalog-card__name">{pkg.title}</h3>
                     </div>
-                    <p className="hbr-catalog-card__subtitle">
-                      {card.subtitle}
-                    </p>
+                    <p className="hbr-catalog-card__subtitle">{pkg.subtitle}</p>
                     <div className="hbr-catalog-card__sizes">
                       <span className="hbr-catalog-card__sizes-label">
-                        {card.sizesLabel}
+                        {pkg.cardTagsLabel}
                       </span>
-                      {card.sizes.map((size) => (
-                        <span key={size} className="hbr-catalog-card__size">
-                          {size}
+                      {pkg.cardTags.map((tag) => (
+                        <span key={tag} className="hbr-catalog-card__size">
+                          {tag}
                         </span>
                       ))}
                     </div>
                     <div className="hbr-catalog-card__bottom">
                       <div className="product-price-and-shipping">
-                        <span className="price">{card.price}</span>
-                        <span className="regular-price">
-                          {card.regularPrice}
-                        </span>
+                        <span className="price">{pkg.price}</span>
+                        {pkg.regularPrice && (
+                          <span className="regular-price">
+                            {pkg.regularPrice}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -727,14 +673,25 @@ export function HomeInteractive() {
                               revIdx >= col.items.length ? "true" : undefined
                             }
                           >
-                            <div className="hbr-reviews__stars" aria-label="5 de 5 estrellas">
+                            <div
+                              className="hbr-reviews__stars"
+                              aria-label="5 de 5 estrellas"
+                            >
                               ★★★★★
                             </div>
                             <blockquote className="hbr-reviews__quote">
                               {rev.quote}
                             </blockquote>
                             <div className="hbr-reviews__person">
-                              <div className="hbr-reviews__product-image da-grey-placeholder" />
+                              <div className="hbr-reviews__product-image">
+                                <Image
+                                  src={rev.image}
+                                  alt={rev.product}
+                                  width={44}
+                                  height={44}
+                                  className="hbr-reviews__product-thumb"
+                                />
+                              </div>
                               <div>
                                 <p className="hbr-reviews__name">{rev.name}</p>
                                 <p className="hbr-reviews__location">
@@ -756,7 +713,15 @@ export function HomeInteractive() {
                               {rev.quote}
                             </blockquote>
                             <div className="hbr-reviews__person">
-                              <div className="hbr-reviews__product-image da-grey-placeholder" />
+                              <div className="hbr-reviews__product-image">
+                                <Image
+                                  src={rev.image}
+                                  alt={rev.product}
+                                  width={44}
+                                  height={44}
+                                  className="hbr-reviews__product-thumb"
+                                />
+                              </div>
                               <div>
                                 <p className="hbr-reviews__name">{rev.name}</p>
                                 <p className="hbr-reviews__location">

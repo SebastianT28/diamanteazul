@@ -3,14 +3,18 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { buildWhatsAppUrl } from "@/data/packages"
+import {
+  PACKAGES_DATA,
+  PRODUCT_CATEGORIES,
+  buildWhatsAppUrl,
+} from "@/data/packages"
 
 const TICKER_ITEMS = [
-  { label: "Uso Interior y Exterior", color: "#5CC2DE" },
-  { label: "100% Desinfectados y Seguros", color: "#9DA5D3" },
-  { label: "+1,000 Familias Felices en Lima", color: "#F4AEBC" },
-  { label: "Instalación y Recojo Puntual Gratis", color: "#5CC2DE" },
-  { label: "Reserva Rápida por WhatsApp", color: "#9DA5D3" },
+  { label: "Castillos Dreamy Pastel y a Color", color: "#5CC2DE" },
+  { label: "Inflables Acuáticos y Cañón de Espuma", color: "#9DA5D3" },
+  { label: "Plataforma 360° y Domo Overhead LED", color: "#F4AEBC" },
+  { label: "Montaje, Desinfección y Personal de Apoyo", color: "#5CC2DE" },
+  { label: "Reserva Rápida por WhatsApp 948 311 603", color: "#9DA5D3" },
 ]
 
 export function SiteHeader() {
@@ -213,13 +217,13 @@ export function SiteHeader() {
                     href="/#hbr-home-range"
                     onClick={() => setMegaOpen(false)}
                   >
-                    Los Inflables
+                    Catálogo
                   </Link>
                   <button
                     id="da-mega-toggle"
                     type="button"
                     className="hbr-header__submenu-toggle"
-                    aria-label="Desplegar catálogo de paquetes"
+                    aria-label="Desplegar catálogo de productos"
                     aria-expanded={megaOpen}
                     onClick={() => setMegaOpen((prev) => !prev)}
                   >
@@ -239,130 +243,64 @@ export function SiteHeader() {
                   <div
                     className="adropdown"
                     role="region"
-                    aria-label="Catálogo de paquetes"
+                    aria-label="Catálogo de productos por categoría"
                   >
                     <div className="hbr-mega">
                       <div className="hbr-mega__top">
                         <p className="hbr-mega__title">
-                          Encuentra su paquete ideal.
+                          Explora nuestros productos por categoría.
                         </p>
                         <Link
                           className="hbr-mega__all"
                           href="/#hbr-home-range"
                           onClick={() => setMegaOpen(false)}
                         >
-                          Ver todos los paquetes <span aria-hidden="true">→</span>
+                          Ver los {PACKAGES_DATA.length} productos{" "}
+                          <span aria-hidden="true">→</span>
                         </Link>
                       </div>
-                      <div className="hbr-mega__groups">
-                        <section className="hbr-mega__group">
-                          <div className="hbr-mega__group-head">
-                            <span className="hbr-mega__eyebrow">
-                              PAQUETES BÁSICO
-                            </span>
-                            <span className="hbr-mega__note">
-                              Ideales para casa o departamento
-                            </span>
-                          </div>
-                          <div className="hbr-mega__products">
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/mini-blanco"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                El Mini Blanco
-                              </span>
-                            </Link>
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/mini-arcoiris"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                Mini Arcoíris
-                              </span>
-                            </Link>
-                          </div>
-                        </section>
-
-                        <section className="hbr-mega__group">
-                          <div className="hbr-mega__group-head">
-                            <span className="hbr-mega__eyebrow">
-                              PAQUETES MEDIO
-                            </span>
-                            <span className="hbr-mega__note">
-                              Los favoritos para cumpleaños
-                            </span>
-                          </div>
-                          <div className="hbr-mega__products">
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/clasico-blanco"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                El Clásico Blanco
-                              </span>
-                            </Link>
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/celeste-diamante"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                Celeste Diamante
-                              </span>
-                            </Link>
-                          </div>
-                        </section>
-
-                        <section className="hbr-mega__group hbr-mega__group--rainbows">
-                          <div className="hbr-mega__group-head">
-                            <span className="hbr-mega__eyebrow">
-                              PAQUETES PREMIUM
-                            </span>
-                            <span className="hbr-mega__note">
-                              Máxima magia con piscina de pelotas
-                            </span>
-                          </div>
-                          <div className="hbr-mega__products">
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/arcoiris-rosa"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                Arcoíris Rosa
-                              </span>
-                            </Link>
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/arcoiris-lavanda"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                Arcoíris Lavanda
-                              </span>
-                            </Link>
-                            <Link
-                              className="hbr-mega__card"
-                              href="/paquetes/arcoiris-azul"
-                              onClick={() => setMegaOpen(false)}
-                            >
-                              <div className="hbr-mega__media da-grey-placeholder" />
-                              <span className="hbr-mega__name">
-                                Arcoíris Azul
-                              </span>
-                            </Link>
-                          </div>
-                        </section>
+                      <div className="hbr-mega__groups hbr-mega__groups--five">
+                        {PRODUCT_CATEGORIES.map((cat) => {
+                          const catProducts = PACKAGES_DATA.filter(
+                            (p) => p.category === cat.slug
+                          )
+                          const previewItems = catProducts.slice(0, 3)
+                          return (
+                            <section key={cat.slug} className="hbr-mega__group">
+                              <div className="hbr-mega__group-head">
+                                <span className="hbr-mega__eyebrow">
+                                  {cat.label.toUpperCase()} ({catProducts.length})
+                                </span>
+                                <span className="hbr-mega__note">
+                                  {cat.note}
+                                </span>
+                              </div>
+                              <div className="hbr-mega__products">
+                                {previewItems.map((prod) => (
+                                  <Link
+                                    key={prod.slug}
+                                    className="hbr-mega__card"
+                                    href={`/paquetes/${prod.slug}`}
+                                    onClick={() => setMegaOpen(false)}
+                                  >
+                                    <div className="hbr-mega__media">
+                                      <Image
+                                        src={prod.image}
+                                        alt={prod.title}
+                                        width={110}
+                                        height={110}
+                                        className="hbr-mega__img"
+                                      />
+                                    </div>
+                                    <span className="hbr-mega__name">
+                                      {prod.title}
+                                    </span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </section>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -479,109 +417,51 @@ export function SiteHeader() {
         </div>
         <div className="hbr-mobile-drawer__content">
           <nav className="hbr-mnav" aria-label="Catálogo móvil">
-            <p className="hbr-mnav__eyebrow">ENCUENTRA SU FAVORITO</p>
+            <p className="hbr-mnav__eyebrow">PRODUCTOS POR TIPO</p>
             <h3 className="hbr-mnav__title">
-              Explora los paquetes de inflables
+              Explora nuestras categorías
             </h3>
             <div className="hbr-mnav__models">
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/mini-blanco"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Básico — El Mini Blanco
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/mini-arcoiris"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Básico — Mini Arcoíris
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/clasico-blanco"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Medio — El Clásico Blanco
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/celeste-diamante"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Medio — Celeste Diamante
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/arcoiris-rosa"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Premium — Arcoíris Rosa
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/arcoiris-lavanda"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Premium — Arcoíris Lavanda
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
-              <Link
-                className="hbr-mnav__model"
-                href="/paquetes/arcoiris-azul"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <span className="hbr-mnav__thumb da-grey-placeholder" />
-                <span className="hbr-mnav__name">
-                  Paquete Premium — Arcoíris Azul
-                </span>
-                <span className="hbr-mnav__chevron" aria-hidden="true">
-                  ›
-                </span>
-              </Link>
+              {PRODUCT_CATEGORIES.map((cat) => {
+                const firstProd = PACKAGES_DATA.find(
+                  (p) => p.category === cat.slug
+                )
+                return (
+                  <Link
+                    key={cat.slug}
+                    className="hbr-mnav__model"
+                    href={
+                      firstProd
+                        ? `/paquetes/${firstProd.slug}`
+                        : "/#hbr-home-range"
+                    }
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    <span className="hbr-mnav__thumb">
+                      {firstProd && (
+                        <Image
+                          src={firstProd.image}
+                          alt={cat.label}
+                          width={46}
+                          height={46}
+                          className="hbr-mnav__thumb-img"
+                        />
+                      )}
+                    </span>
+                    <span className="hbr-mnav__name">{cat.label}</span>
+                    <span className="hbr-mnav__chevron" aria-hidden="true">
+                      ›
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
             <Link
               className="hbr-mnav__all"
               href="/#hbr-home-range"
               onClick={() => setDrawerOpen(false)}
             >
-              <span>Ver todos los paquetes</span>
+              <span>Ver los {PACKAGES_DATA.length} productos del catálogo</span>
               <span aria-hidden="true">→</span>
             </Link>
 
@@ -618,12 +498,12 @@ export function SiteHeader() {
                 Asesoría directa por WhatsApp
               </strong>
               <p className="hbr-mnav__help-copy">
-                Te ayudamos a elegir el inflable ideal según el espacio y la
-                edad de los niños.
+                Te ayudamos a elegir el inflable o servicio ideal según tu
+                espacio y tipo de evento.
               </p>
               <span className="hbr-mnav__help-cta">
-                <span>Escribir a WhatsApp</span>
-                <span aria-hidden="true">→</span>
+                <span>Escribir al 948 311 603</span>
+                <span aria-hidden="true">↗</span>
               </span>
             </a>
           </nav>
