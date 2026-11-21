@@ -518,36 +518,23 @@ export function HomeInteractive() {
                     </div>
                     <p className="hbr-catalog-card__subtitle">{pkg.subtitle}</p>
                     <div className="hbr-catalog-card__sizes">
-                      {pkg.slug === "arcoiris-magico" ? (
-                        <>
-                          <span className="hbr-catalog-card__size-group">
-                            <span className="hbr-catalog-card__sizes-label">
-                              Medidas
-                            </span>
-                            <span className="hbr-catalog-card__size">
-                              6×5×4m
-                            </span>
-                          </span>
-                          <span className="hbr-catalog-card__size-group">
-                            <span className="hbr-catalog-card__sizes-label">
-                              Alquiler
-                            </span>
-                            <span className="hbr-catalog-card__size">
-                              5 hrs
-                            </span>
-                          </span>
-                        </>
-                      ) : (
-                        <>
+                      <span className="hbr-catalog-card__size-group">
+                        <span className="hbr-catalog-card__sizes-label">
+                          {pkg.cardTagsLabel}
+                        </span>
+                        <span className="hbr-catalog-card__size">
+                          {pkg.cardTags[0]}
+                        </span>
+                      </span>
+                      {pkg.cardTags[1] && (
+                        <span className="hbr-catalog-card__size-group">
                           <span className="hbr-catalog-card__sizes-label">
-                            {pkg.cardTagsLabel}
+                            Alquiler
                           </span>
-                          {pkg.cardTags.map((tag) => (
-                            <span key={tag} className="hbr-catalog-card__size">
-                              {tag}
-                            </span>
-                          ))}
-                        </>
+                          <span className="hbr-catalog-card__size">
+                            {pkg.cardTags[1]}
+                          </span>
+                        </span>
                       )}
                     </div>
                     <div className="hbr-catalog-card__bottom">
