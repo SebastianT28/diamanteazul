@@ -251,10 +251,26 @@ function UspItems() {
   );
 }
 
+const HERO_BUBBLE_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] as const;
+
 export function HomeInteractive() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [isMobileUsps, setIsMobileUsps] = useState(false);
   const [reviewColumnCount, setReviewColumnCount] = useState(3);
+  const [poppedBubbles, setPoppedBubbles] = useState<Record<number, boolean>>({});
+  const [bubbleCycles, setBubbleCycles] = useState<Record<number, number>>({});
+
+  const handlePopBubble = (id: number) => {
+    setPoppedBubbles((prev) => {
+      if (prev[id]) return prev;
+      return { ...prev, [id]: true };
+    });
+
+    window.setTimeout(() => {
+      setBubbleCycles((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+      setPoppedBubbles((prev) => ({ ...prev, [id]: false }));
+    }, 430);
+  };
 
   const uspSectionRef = useRef<HTMLElement>(null);
   const uspPrimaryListRef = useRef<HTMLUListElement>(null);
@@ -387,21 +403,37 @@ export function HomeInteractive() {
             className="hbr-hero-bg-image"
           />
         </div>
-        <div className="hbr-hero-bubbles" aria-hidden="true">
-          <span className="hbr-hero-bubble hbr-hero-bubble--1" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--2" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--3" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--4" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--5" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--6" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--7" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--8" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--9" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--10" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--11" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--12" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--13" />
-          <span className="hbr-hero-bubble hbr-hero-bubble--14" />
+        <div className="hbr-hero-bubbles">
+          {HERO_BUBBLE_IDS.map((id) => {
+            const isPopped = Boolean(poppedBubbles[id]);
+            const cycle = bubbleCycles[id] ?? 0;
+            return (
+              <button
+                key={`hero-bubble-${id}-${cycle}`}
+                type="button"
+                aria-label="Reventar burbuja"
+                className={`hbr-hero-bubble hbr-hero-bubble--${id}${
+                  isPopped ? " is-popped" : ""
+                }`}
+                style={
+                  cycle > 0
+                    ? ({ "--b-delay": "0.1s" } as React.CSSProperties)
+                    : undefined
+                }
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  handlePopBubble(id);
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePopBubble(id);
+                }}
+              >
+                <span className="hbr-hero-bubble__shell" />
+                <span className="hbr-hero-bubble__burst" />
+              </button>
+            );
+          })}
         </div>
         <div className="video-overlay">
           <div className="hbr-hero-copy">
