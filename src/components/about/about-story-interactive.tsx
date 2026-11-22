@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 
 interface JourneySlide {
@@ -8,8 +9,7 @@ interface JourneySlide {
   year: string
   title: string
   description: string
-  badgeTitle: string
-  badgeSub: string
+  image: string
   ariaLabel: string
 }
 
@@ -20,8 +20,7 @@ const JOURNEY_SLIDES: JourneySlide[] = [
     title: "Donde todo comenzó.",
     description:
       "Nuestra colección original presentó nuestro amor por los tonos suaves, con diseños en blanco neutro, celeste, rosa y arcoíris pensados para jugar en casa.",
-    badgeTitle: "Colección Clásica 2022",
-    badgeSub: "Placeholder Gris · El Rebote Neutro",
+    image: "/images/pages/recorrido_1_2022.webp",
     ariaLabel: "2022: Donde todo comenzó. — 1 de 4",
   },
   {
@@ -29,9 +28,8 @@ const JOURNEY_SLIDES: JourneySlide[] = [
     year: "2023",
     title: "El arcoíris, reimaginado.",
     description:
-      "Nuestra colección creció con los modelos Arcoíris Neutro y Arcoíris Celeste: más formas de encontrar un castillo que armonice con tu espacio.",
-    badgeTitle: "Línea Arcoíris Pastel 2023",
-    badgeSub: "Placeholder Gris · El Arcoíris Reimaginado",
+      "Nuestra colección creció con los circuitos pastel y modelos Dreamy: más formas de encontrar un castillo que armonice con tu celebración.",
+    image: "/images/pages/recorrido_2_2023.webp",
     ariaLabel: "2023: El arcoíris, reimaginado. — 2 de 4",
   },
   {
@@ -39,20 +37,18 @@ const JOURNEY_SLIDES: JourneySlide[] = [
     year: "2025",
     title: "Espacios pequeños. Grandes sonrisas.",
     description:
-      "Presentamos el Mini Inflable, llevando nuestra estética limpia y pastel a un diseño compacto hecho para aventuras cotidianas en interiores.",
-    badgeTitle: "Línea Mini Bounce 2025",
-    badgeSub: "Placeholder Gris · Formato Compacto",
+      "Presentamos nuestras piscinas de pelotas y circuitos Soft Play, llevando nuestra estética limpia y pastel a formatos ideales para interiores y terrazas.",
+    image: "/images/pages/recorrido_3_2025.webp",
     ariaLabel: "2025: Espacios pequeños. Grandes sonrisas. — 3 de 4",
   },
   {
     id: "hbs-journey-2026",
     year: "2026",
-    title: "Hola, Mini Arcoíris.",
+    title: "Nuevas experiencias Dreamy.",
     description:
-      "Un nuevo capítulo con el lanzamiento de nuestro Mini Arcoíris: un diseño encantador pensado para llevar aún más alegría a las celebraciones dentro de casa.",
-    badgeTitle: "Lanzamiento Mini Arcoíris 2026",
-    badgeSub: "Placeholder Gris · Nueva Colección",
-    ariaLabel: "2026: Hola, Mini Arcoíris. — 4 de 4",
+      "Un nuevo capítulo con el lanzamiento de nuestros toboganes pastel, Bubble House y estaciones 360° para llevar aún más magia a cada evento.",
+    image: "/images/pages/recorrido_4_2026.webp",
+    ariaLabel: "2026: Nuevas experiencias Dreamy. — 4 de 4",
   },
 ]
 
@@ -73,32 +69,33 @@ const RIBBON_PHRASES = [
 
 interface MosaicTile {
   label: string
-  sub?: string
+  image: string
   corner?: string
   quote?: string
 }
 
 const MOSAIC_TILES: MosaicTile[] = [
-  { label: "Arcoíris Blanco", sub: "Sala familiar · Placeholder" },
-  { label: "Arcoíris Rosa", sub: "Tarde de juegos · Placeholder" },
-  { label: "Clásico con Globos", sub: "Cumpleaños en casa · Placeholder" },
-  { label: "Fiesta Temática", sub: "Mini en sala · Placeholder" },
-  { label: "Diversión entre Amigos", sub: "Tobogán pastel · Placeholder" },
-  { label: "Mini Blanco", sub: "Primer añito · Placeholder" },
-  { label: "Mini Arcoíris", sub: "Rincón infantil · Placeholder" },
+  { label: "Soft Play en Casa", image: "/images/pages/mosaico_1.webp" },
+  { label: "Castillo de Ensueño", image: "/images/pages/mosaico_2.webp" },
+  { label: "Arcoíris Mágico", image: "/images/pages/mosaico_3.webp" },
+  { label: "Aquaroller en Verano", image: "/images/pages/mosaico_4.webp" },
+  { label: "Bubble House Pastel", image: "/images/pages/mosaico_5.webp" },
+  { label: "Tobogán de Ensueño", image: "/images/pages/mosaico_6.webp" },
+  { label: "Castillo 3 en 1", image: "/images/pages/mosaico_7.webp" },
   {
-    label: "Reel en Casa",
+    label: "Bloques a tu Medida",
+    image: "/images/pages/mosaico_8.webp",
     corner: "▶",
     quote: "El tipo de alegría... que querrías guardar para siempre 🤍",
   },
   {
-    label: "Pequeños Saltos",
-    sub: "Galería familiar · Placeholder",
+    label: "Piscina con Botes",
+    image: "/images/pages/mosaico_9.webp",
     corner: "❐",
   },
   {
-    label: "Diseño Residencial",
-    sub: "Hogar moderno · Placeholder",
+    label: "Camas Saltarinas",
+    image: "/images/pages/mosaico_10.webp",
     corner: "❐",
   },
 ]
@@ -324,22 +321,16 @@ export function AboutStoryInteractive() {
         <figure
           className="hb-story__photo hb-story__hero-backdrop"
           aria-hidden="true"
-        />
-        <div className="hb-story__hero-placeholder-tag" aria-hidden="true">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          <span>Imagen Principal de Portada (Placeholder Gris)</span>
-        </div>
+        >
+          <Image
+            src="/images/pages/quienes_somos_portada.webp"
+            alt="Familias y niños disfrutando en un castillo inflable pastel de Diamante Azul"
+            fill
+            priority
+            sizes="100vw"
+            className="hb-story__hero-img"
+          />
+        </figure>
         <div className="hb-story__inner hb-story__hero-content">
           <p className="hb-story__eyebrow">Nuestra historia</p>
           <h1 id="hbs-title">
@@ -507,27 +498,14 @@ export function AboutStoryInteractive() {
                     if (!isActive) selectJourneySlide(idx, true)
                   }}
                 >
-                  <div className="hbs-journey__image da-grey-placeholder">
-                    <div className="da-grey-placeholder__badge">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect x="3" y="3" width="18" height="18" rx="3" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <path d="M21 15l-5-5L5 21" />
-                      </svg>
-                      <span className="da-grey-placeholder__title">
-                        {slide.badgeTitle}
-                      </span>
-                      <span className="da-grey-placeholder__sub">
-                        {slide.badgeSub}
-                      </span>
-                    </div>
+                  <div className="hbs-journey__image">
+                    <Image
+                      src={slide.image}
+                      alt={slide.title}
+                      fill
+                      sizes="(max-width: 767px) 90vw, 520px"
+                      className="hbs-journey__img"
+                    />
                   </div>
                   <div className="hbs-journey__body">
                     <p className="hbs-journey__year">{slide.year}</p>
@@ -597,27 +575,14 @@ export function AboutStoryInteractive() {
       >
         <div className="hb-story__inner hb-story__split">
           <div className="hb-story__detail-photos">
-            <figure className="hb-story__photo da-grey-placeholder">
-              <div className="da-grey-placeholder__badge">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="3" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                <span className="da-grey-placeholder__title">
-                  Fotografía de Detalle y Costuras Pastel
-                </span>
-                <span className="da-grey-placeholder__sub">
-                  Placeholder Gris 1:1 · Acabados y material premium
-                </span>
-              </div>
+            <figure className="hb-story__photo">
+              <Image
+                src="/images/pages/quienes_somos_detalles.webp"
+                alt="Detalle de costuras reforzadas, acabado mate pastel y pelotas suaves de Diamante Azul"
+                fill
+                sizes="(max-width: 900px) 100vw, 50vw"
+                className="hb-story__detail-img"
+              />
             </figure>
           </div>
           <div>
@@ -829,27 +794,18 @@ export function AboutStoryInteractive() {
           >
             {MOSAIC_TILES.map((tile, idx) => (
               <div key={idx} className="hbs-home-mosaic__tile">
+                <Image
+                  src={tile.image}
+                  alt={tile.label}
+                  fill
+                  sizes="(max-width: 767px) 50vw, 20vw"
+                  className="hbs-home-mosaic__img"
+                />
                 {tile.corner && (
                   <span className="hbs-home-mosaic__corner" aria-hidden="true">
                     {tile.corner}
                   </span>
                 )}
-                <div className="hbs-home-mosaic__pill">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="3" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
-                  <span className="hbs-home-mosaic__label">{tile.label}</span>
-                  {tile.sub && (
-                    <span className="hbs-home-mosaic__sub">{tile.sub}</span>
-                  )}
-                </div>
                 {tile.quote && (
                   <div className="hbs-home-mosaic__quote">{tile.quote}</div>
                 )}

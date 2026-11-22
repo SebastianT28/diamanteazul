@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { buildWhatsAppUrl } from "@/data/packages"
 
@@ -205,32 +206,33 @@ const FAQ_GROUPS: FaqGroupData[] = [
 
 interface MosaicTile {
   label: string
-  sub?: string
+  image: string
   corner?: string
   quote?: string
 }
 
 const MOSAIC_TILES: MosaicTile[] = [
-  { label: "Arcoíris Blanco", sub: "Sala familiar · Placeholder" },
-  { label: "Arcoíris Rosa", sub: "Tarde de juegos · Placeholder" },
-  { label: "Clásico con Globos", sub: "Cumpleaños en casa · Placeholder" },
-  { label: "Fiesta Temática", sub: "Mini en sala · Placeholder" },
-  { label: "Diversión entre Amigos", sub: "Tobogán pastel · Placeholder" },
-  { label: "Mini Blanco", sub: "Primer añito · Placeholder" },
-  { label: "Mini Arcoíris", sub: "Rincón infantil · Placeholder" },
+  { label: "Soft Play en Casa", image: "/images/pages/mosaico_1.webp" },
+  { label: "Castillo de Ensueño", image: "/images/pages/mosaico_2.webp" },
+  { label: "Arcoíris Mágico", image: "/images/pages/mosaico_3.webp" },
+  { label: "Aquaroller en Verano", image: "/images/pages/mosaico_4.webp" },
+  { label: "Bubble House Pastel", image: "/images/pages/mosaico_5.webp" },
+  { label: "Tobogán de Ensueño", image: "/images/pages/mosaico_6.webp" },
+  { label: "Castillo 3 en 1", image: "/images/pages/mosaico_7.webp" },
   {
-    label: "Reel en Casa",
+    label: "Bloques a tu Medida",
+    image: "/images/pages/mosaico_8.webp",
     corner: "▶",
     quote: "El tipo de alegría... que querrías guardar para siempre 🤍",
   },
   {
-    label: "Pequeños Saltos",
-    sub: "Galería familiar · Placeholder",
+    label: "Piscina con Botes",
+    image: "/images/pages/mosaico_9.webp",
     corner: "❐",
   },
   {
-    label: "Diseño Residencial",
-    sub: "Hogar moderno · Placeholder",
+    label: "Camas Saltarinas",
+    image: "/images/pages/mosaico_10.webp",
     corner: "❐",
   },
 ]
@@ -287,22 +289,16 @@ export function FaqInteractive() {
         className="hb-story__hero hb-story__hero--cover"
         aria-labelledby="hbf-title"
       >
-        <figure className="hb-story__hero-backdrop" aria-hidden="true" />
-        <div className="hb-story__hero-placeholder-tag" aria-hidden="true">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          <span>Imagen Principal de Portada FAQs (Placeholder Gris)</span>
-        </div>
+        <figure className="hb-story__hero-backdrop" aria-hidden="true">
+          <Image
+            src="/images/pages/faqs_portada.webp"
+            alt="Castillo inflable blanco con globos pastel instalado en jardín por Diamante Azul"
+            fill
+            priority
+            sizes="100vw"
+            className="hb-story__hero-img"
+          />
+        </figure>
         <div className="hb-story__inner hb-story__hero-content">
           <p className="hb-story__eyebrow">Un poco de ayuda, mucha alegría</p>
           <h1 id="hbf-title">
@@ -456,27 +452,18 @@ export function FaqInteractive() {
           <div className="hbs-home-mosaic">
             {MOSAIC_TILES.map((tile, idx) => (
               <div key={idx} className="hbs-home-mosaic__tile">
+                <Image
+                  src={tile.image}
+                  alt={tile.label}
+                  fill
+                  sizes="(max-width: 767px) 50vw, 20vw"
+                  className="hbs-home-mosaic__img"
+                />
                 {tile.corner && (
                   <span className="hbs-home-mosaic__corner" aria-hidden="true">
                     {tile.corner}
                   </span>
                 )}
-                <div className="hbs-home-mosaic__pill">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="3" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
-                  <span className="hbs-home-mosaic__label">{tile.label}</span>
-                  {tile.sub && (
-                    <span className="hbs-home-mosaic__sub">{tile.sub}</span>
-                  )}
-                </div>
                 {tile.quote && (
                   <div className="hbs-home-mosaic__quote">{tile.quote}</div>
                 )}

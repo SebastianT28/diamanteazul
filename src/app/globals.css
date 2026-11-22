@@ -4058,7 +4058,47 @@ html.hbs-pill-fixed #da-header.hbr-header {
   border: 0;
   border-radius: 0;
   z-index: -2;
+  overflow: hidden;
   background: linear-gradient(145deg, #9BA7B6 0%, #8390A0 50%, #717E8E 100%);
+}
+
+.hb-story.hb-story--page .hb-story__hero--cover .hb-story__hero-img {
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+.hb-story.hb-story--page .hb-story__hero--cover .hb-story__hero-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(22, 32, 44, 0.38) 0%,
+    rgba(22, 32, 44, 0.44) 55%,
+    rgba(22, 32, 44, 0.28) 100%
+  );
+  pointer-events: none;
+}
+
+.hb-story.hb-story--page .hbs-journey .hbs-journey__img {
+  object-fit: cover;
+}
+
+.hb-story.hb-story--page .hb-story__detail-photos .hb-story__photo {
+  position: relative;
+}
+
+.hb-story.hb-story--page .hb-story__detail-img {
+  object-fit: cover;
+}
+
+.hb-story.hb-story--page .hbs-home-mosaic__img {
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.hb-story.hb-story--page .hbs-home-mosaic__tile:hover .hbs-home-mosaic__img {
+  transform: scale(1.04);
 }
 
 .hb-story.hb-story--page .hb-story__hero--cover .hb-story__hero-backdrop::before {
