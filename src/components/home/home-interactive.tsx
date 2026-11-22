@@ -385,19 +385,23 @@ export function HomeInteractive() {
             sizes="100vw"
             quality={85}
             className="hbr-hero-bg-image"
-            style={{ display: "none" }}
-            hidden
           />
-          <video
-            src="/images/home/home_hero_video.mp4"
-            poster="/images/home/home_hero_portada-02.webp"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            className="hbr-hero-bg-video"
-          />
+        </div>
+        <div className="hbr-hero-bubbles" aria-hidden="true">
+          <span className="hbr-hero-bubble hbr-hero-bubble--1" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--2" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--3" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--4" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--5" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--6" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--7" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--8" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--9" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--10" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--11" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--12" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--13" />
+          <span className="hbr-hero-bubble hbr-hero-bubble--14" />
         </div>
         <div className="video-overlay">
           <div className="hbr-hero-copy">
