@@ -385,6 +385,18 @@ export function HomeInteractive() {
             sizes="100vw"
             quality={85}
             className="hbr-hero-bg-image"
+            style={{ display: "none" }}
+            hidden
+          />
+          <video
+            src="/images/home/home_hero_video.mp4"
+            poster="/images/home/home_hero_portada-02.webp"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className="hbr-hero-bg-video"
           />
         </div>
         <div className="video-overlay">

@@ -955,7 +955,11 @@ a.hbr-mnav__help {
   overflow: hidden;
 }
 
-.video-hero.hbr-hero-v2 .hbr-hero-bg-image {
+.video-hero.hbr-hero-v2 .hbr-hero-bg-image,
+.video-hero.hbr-hero-v2 .hbr-hero-bg-video {
+  width: 100%;
+  height: 100%;
+  display: block;
   object-fit: cover;
   object-position: center 22%;
   user-select: none;
@@ -1151,7 +1155,8 @@ a.hbr-mnav__help {
     min-height: 440px;
   }
 
-  .video-hero.hbr-hero-v2 .hbr-hero-bg-image {
+  .video-hero.hbr-hero-v2 .hbr-hero-bg-image,
+  .video-hero.hbr-hero-v2 .hbr-hero-bg-video {
     object-position: 73% 22%;
   }
 
