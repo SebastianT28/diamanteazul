@@ -70,7 +70,6 @@ const RIBBON_PHRASES = [
 interface MosaicTile {
   label: string
   image: string
-  corner?: string
   quote?: string
 }
 
@@ -85,18 +84,15 @@ const MOSAIC_TILES: MosaicTile[] = [
   {
     label: "Bloques a tu Medida",
     image: "/images/pages/mosaico_8.webp",
-    corner: "▶",
     quote: "El tipo de alegría... que querrías guardar para siempre 🤍",
   },
   {
     label: "Piscina con Botes",
     image: "/images/pages/mosaico_9.webp",
-    corner: "❐",
   },
   {
     label: "Camas Saltarinas",
     image: "/images/pages/mosaico_10.webp",
-    corner: "❐",
   },
 ]
 
@@ -801,11 +797,6 @@ export function AboutStoryInteractive() {
                   sizes="(max-width: 767px) 50vw, 20vw"
                   className="hbs-home-mosaic__img"
                 />
-                {tile.corner && (
-                  <span className="hbs-home-mosaic__corner" aria-hidden="true">
-                    {tile.corner}
-                  </span>
-                )}
                 {tile.quote && (
                   <div className="hbs-home-mosaic__quote">{tile.quote}</div>
                 )}
