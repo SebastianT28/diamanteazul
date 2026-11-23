@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { connection } from "next/server"
 import { PACKAGES_DATA } from "@/data/packages"
 import { getEffectivePackageBySlug } from "@/lib/admin-db"
 import { PackageDetailInteractive } from "@/components/packages/package-detail-interactive"
@@ -18,6 +19,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: PackagePageProps): Promise<Metadata> {
+  await connection()
   const { slug } = await params
   const pkg = await getEffectivePackageBySlug(slug)
 
@@ -53,6 +55,7 @@ export async function generateMetadata({
 }
 
 async function PackageDetailContent({ params }: PackagePageProps) {
+  await connection()
   const { slug } = await params
   const pkg = await getEffectivePackageBySlug(slug)
 

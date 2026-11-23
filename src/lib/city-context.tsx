@@ -2,6 +2,7 @@
 
 import React, {
   createContext,
+  Suspense,
   useCallback,
   useContext,
   useEffect,
@@ -90,9 +91,21 @@ const CityContext = createContext<CityContextValue>({
   catalogProducts: PACKAGES_DATA,
 })
 
-export function CityProvider({ children }: { children: React.ReactNode }) {
+function CityPathnameWatcher({
+  onPathname,
+}: {
+  onPathname: (p: string) => void
+}) {
   const pathname = usePathname()
+  useEffect(() => {
+    if (pathname) onPathname(pathname)
+  }, [pathname, onPathname])
+  return null
+}
+
+export function CityProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const [pathname, setPathname] = useState<string>("")
   const [catalogProducts, setCatalogProducts] =
     useState<InflatablePackage[]>(PACKAGES_DATA)
 
@@ -249,7 +262,14 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pathname])
 
-  return <CityContext.Provider value={value}>{children}</CityContext.Provider>
+  return (
+    <CityContext.Provider value={value}>
+      <Suspense fallback={null}>
+        <CityPathnameWatcher onPathname={setPathname} />
+      </Suspense>
+      {children}
+    </CityContext.Provider>
+  )
 }
 
 export function useCity(): CityContextValue {
