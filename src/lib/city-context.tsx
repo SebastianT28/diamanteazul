@@ -157,6 +157,67 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
     [activeCity, switchCity]
   )
 
+  // Live Image Overrides Synchronizer: applies any image modified in /admin across all pages
+  useEffect(() => {
+    let active = true
+    let overridesMap: Record<string, string> = {}
+
+    const applyOverridesToDom = () => {
+      const keys = Object.keys(overridesMap)
+      if (keys.length === 0) return
+      const imgs = document.querySelectorAll<HTMLImageElement>("img")
+      imgs.forEach((img) => {
+        for (const origPath of keys) {
+          const encodedPath = encodeURIComponent(origPath)
+          const currentSrc = img.getAttribute("src") || ""
+          const currentSrcSet = img.getAttribute("srcset") || ""
+          if (
+            currentSrc === origPath ||
+            currentSrc.includes(encodedPath) ||
+            currentSrcSet.includes(encodedPath)
+          ) {
+            const targetUrl = overridesMap[origPath]
+            if (currentSrc !== targetUrl) {
+              img.removeAttribute("srcset")
+              img.setAttribute("src", targetUrl)
+            }
+          }
+        }
+      })
+    }
+
+    const loadManifest = async () => {
+      try {
+        const res = await fetch("/api/images/manifest", { cache: "no-store" })
+        if (!res.ok) return
+        const data = (await res.json()) as {
+          overrides?: Record<string, string>
+        }
+        if (!active || !data.overrides) return
+        overridesMap = data.overrides
+        applyOverridesToDom()
+      } catch {
+        // Ignore
+      }
+    }
+
+    loadManifest()
+    window.addEventListener("da-refresh-image-overrides", loadManifest)
+
+    const observer = new MutationObserver(() => {
+      if (Object.keys(overridesMap).length > 0) {
+        applyOverridesToDom()
+      }
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    return () => {
+      active = false
+      window.removeEventListener("da-refresh-image-overrides", loadManifest)
+      observer.disconnect()
+    }
+  }, [pathname])
+
   return <CityContext.Provider value={value}>{children}</CityContext.Provider>
 }
 
