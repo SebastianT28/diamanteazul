@@ -37,9 +37,10 @@ export function ContactInteractive() {
   const whatsappMessage = (() => {
     const cleanEmail = email.trim() ? ` (${email.trim()})` : ""
     const cleanMsg = message.trim()
-      ? message.trim()
-      : `Hola Diamante Azul, quisiera recibir información sobre sus paquetes de alquiler de juegos inflables en ${cityConfig.name}.`
-    return `Hola Diamante Azul, les escribo desde Contáctanos [${cityConfig.name} · ${subject}${cleanEmail}]: ${cleanMsg}`
+    if (cleanMsg) {
+      return `Buen día, escribo por ${subject.toLowerCase()} en ${cityConfig.name}${cleanEmail}: ${cleanMsg}`
+    }
+    return `Buen día, quisiera realizar una consulta sobre ${subject.toLowerCase()} en ${cityConfig.name}.`
   })()
 
   const whatsappHref = buildWhatsAppUrl(whatsappMessage)

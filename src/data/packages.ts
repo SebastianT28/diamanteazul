@@ -2107,17 +2107,15 @@ export function buildWhatsAppUrl(
     )}`
   }
 
-  const pkgPart = params.packageTitle
-    ? `el producto *${params.packageTitle}*`
-    : "sus productos de alquiler para eventos"
+  const districtPart = params.district ? ` en ${params.district}` : ""
 
-  const eventPart = params.eventType
-    ? ` para un evento tipo *${params.eventType}*`
-    : ""
+  if (params.packageTitle) {
+    const eventPart = params.eventType ? ` para ${params.eventType}` : ""
+    const text = `Buen día, quisiera consultar disponibilidad de *${params.packageTitle}*${eventPart}${districtPart}.`
+    return `https://wa.me/${WHATSAPP_CONFIG.phone}?text=${encodeURIComponent(text)}`
+  }
 
-  const districtPart = params.district ? ` en *${params.district}*` : ""
-
-  const text = `Hola ${WHATSAPP_CONFIG.businessName}, vi en su web ${pkgPart} y me gustaría consultar disponibilidad y cotización${eventPart}${districtPart}.`
+  const text = `Buen día, quisiera información y disponibilidad de alquiler de inflables${districtPart}.`
 
   return `https://wa.me/${WHATSAPP_CONFIG.phone}?text=${encodeURIComponent(text)}`
 }

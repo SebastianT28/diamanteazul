@@ -13,8 +13,8 @@ export function SiteFooter() {
     e.preventDefault()
     const trimmed = contactValue.trim()
     const message = trimmed
-      ? `Hola Diamante Azul, quiero unirme a las novedades / hacer una consulta desde ${cityConfig.name}. Mi contacto es: ${trimmed}`
-      : `Hola Diamante Azul, quiero consultar disponibilidad de sus paquetes de inflables en ${cityConfig.name}.`
+      ? `Buen día, quisiera recibir información de alquiler de inflables en ${cityConfig.name}. Mi contacto es: ${trimmed}`
+      : `Buen día, quisiera información sobre el alquiler de inflables en ${cityConfig.name}.`
     window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer")
   }
 
@@ -176,7 +176,7 @@ export function SiteFooter() {
       <a
         id="hbr-chat-tab"
         href={buildWhatsAppUrl(
-          `Hola Diamante Azul, necesito ayuda con un paquete en ${cityConfig.name}`
+          `Buen día, quisiera orientación para elegir un inflable en ${cityConfig.name}.`
         )}
         target="_blank"
         rel="noopener noreferrer"

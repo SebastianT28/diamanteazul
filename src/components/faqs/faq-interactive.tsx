@@ -384,7 +384,7 @@ export function FaqInteractive() {
   }
 
   const waHelpUrl = buildWhatsAppUrl(
-    `Hola Diamante Azul, tengo una consulta sobre el alquiler de juegos inflables en ${cityConfig.name}.`
+    `Buen día, tengo una consulta sobre el alquiler de inflables en ${cityConfig.name}.`
   )
 
   return (

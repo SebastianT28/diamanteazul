@@ -108,7 +108,7 @@ export function PackageDetailInteractive({
       pkg.slug === "plataforma-360"
         ? activeSize.label
         : `${activeSize.label} · ${pkg.rentalDurationPill}`
-    const customMessage = `Hola Diamante Azul, deseo consultar disponibilidad en *${cityConfig.whatsappCityLabel}* y reservar *${pkg.title}* (${timePart} — ${activeSize.price}).`
+    const customMessage = `Buen día, quisiera consultar disponibilidad para alquilar *${pkg.title}* (${timePart} — ${activeSize.price}) en ${cityConfig.whatsappCityLabel}.`
     return buildWhatsAppUrl({ customMessage })
   }, [
     pkg.slug,
