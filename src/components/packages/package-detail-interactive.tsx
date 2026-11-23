@@ -112,7 +112,7 @@ export function PackageDetailInteractive({
 
   const whatsappUrl = React.useMemo(() => {
     const productPageUrl = `${siteOrigin}/paquetes/${pkg.slug}`
-    const customMessage = `Buen día, quisiera consultar disponibilidad para alquilar *${pkg.title}* en ${cityConfig.whatsappCityLabel}.\n${productPageUrl}`
+    const customMessage = `Buen día, quisiera consultar disponibilidad para alquilar ${pkg.title} en ${cityConfig.whatsappCityLabel}.\n${productPageUrl}`
     return buildWhatsAppUrl({ customMessage })
   }, [pkg.slug, pkg.title, cityConfig.whatsappCityLabel, siteOrigin])
 

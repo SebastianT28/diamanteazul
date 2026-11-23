@@ -2111,7 +2111,7 @@ export function buildWhatsAppUrl(
 
   if (params.packageTitle) {
     const eventPart = params.eventType ? ` para ${params.eventType}` : ""
-    const text = `Buen día, quisiera consultar disponibilidad de *${params.packageTitle}*${eventPart}${districtPart}.`
+    const text = `Buen día, quisiera consultar disponibilidad de ${params.packageTitle}${eventPart}${districtPart}.`
     return `https://wa.me/${WHATSAPP_CONFIG.phone}?text=${encodeURIComponent(text)}`
   }
 
