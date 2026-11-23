@@ -500,7 +500,7 @@ export function HomeInteractive({
         aria-label="Catálogo de productos por categoría"
       >
         <div className="hbr-home-range-heading">
-          <h2>Encuentra su favorito en {activeCityConfig.name}.</h2>
+          <h2>Encuentra tu inflable favorito en {activeCityConfig.name}</h2>
           <p>{activeCityConfig.catalogSubtitle}</p>
         </div>
 
