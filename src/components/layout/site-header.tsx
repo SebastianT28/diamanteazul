@@ -21,12 +21,14 @@ const TICKER_ITEMS = [
 export function SiteHeader() {
   const [megaOpen, setMegaOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false)
   const [headerHidden, setHeaderHidden] = useState(false)
   const { city, cityConfig, switchCity } = useCity()
 
   const bannerRef = useRef<HTMLDivElement>(null)
   const tickerTrackRef = useRef<HTMLDivElement>(null)
   const tickerGroupRef = useRef<HTMLDivElement>(null)
+  const cityDropdownRef = useRef<HTMLDivElement>(null)
 
   const generalWaUrl = buildWhatsAppUrl({
     district: cityConfig.whatsappCityLabel,
@@ -136,11 +138,26 @@ export function SiteHeader() {
       if (e.key === "Escape") {
         setMegaOpen(false)
         setDrawerOpen(false)
+        setCityDropdownOpen(false)
+      }
+    }
+    const onPointerDownOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        cityDropdownRef.current &&
+        !cityDropdownRef.current.contains(e.target as Node)
+      ) {
+        setCityDropdownOpen(false)
       }
     }
     document.addEventListener("keydown", onKeyDown)
+    document.addEventListener("mousedown", onPointerDownOutside)
+    document.addEventListener("touchstart", onPointerDownOutside, {
+      passive: true,
+    })
     return () => {
       document.removeEventListener("keydown", onKeyDown)
+      document.removeEventListener("mousedown", onPointerDownOutside)
+      document.removeEventListener("touchstart", onPointerDownOutside)
       document.documentElement.classList.remove("hbr-mobile-menu-open")
     }
   }, [drawerOpen])
@@ -356,8 +373,9 @@ export function SiteHeader() {
             </Link>
           </div>
 
-          {/* Right Action Capsule: City Switcher (Lima default | Arequipa) + WhatsApp */}
+          {/* Right Action Capsule: City Switcher (Desktop horizontal / Mobile pin icon + vertical dropdown) + WhatsApp */}
           <div className="hbr-header__right">
+            {/* Desktop Horizontal City Switcher (>=992px) */}
             <div
               className="hbr-city-switcher"
               role="group"
@@ -398,6 +416,75 @@ export function SiteHeader() {
               >
                 Arequipa
               </button>
+            </div>
+
+            {/* Mobile & Tablet Vertical Interactive City Dropdown (<=991px): Pin Icon Trigger -> Vertical List */}
+            <div
+              ref={cityDropdownRef}
+              className={`hbr-city-dropdown ${
+                cityDropdownOpen ? "is-open" : ""
+              }`}
+            >
+              <button
+                type="button"
+                className="hbr-city-dropdown__trigger"
+                aria-label={`Ciudad seleccionada: ${cityConfig.name}. Cambiar ciudad`}
+                aria-expanded={cityDropdownOpen}
+                aria-haspopup="listbox"
+                onClick={() => setCityDropdownOpen((prev) => !prev)}
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </button>
+
+              <div
+                className="hbr-city-dropdown__menu"
+                role="listbox"
+                aria-label="Seleccionar ciudad"
+              >
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={city === "lima"}
+                  className={`hbr-city-dropdown__option ${
+                    city === "lima" ? "is-active" : ""
+                  }`}
+                  onClick={() => {
+                    switchCity("lima")
+                    setCityDropdownOpen(false)
+                  }}
+                >
+                  <span className="hbr-city-dropdown__dot" aria-hidden="true" />
+                  <span>Lima</span>
+                </button>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={city === "arequipa"}
+                  className={`hbr-city-dropdown__option ${
+                    city === "arequipa" ? "is-active" : ""
+                  }`}
+                  onClick={() => {
+                    switchCity("arequipa")
+                    setCityDropdownOpen(false)
+                  }}
+                >
+                  <span className="hbr-city-dropdown__dot" aria-hidden="true" />
+                  <span>Arequipa</span>
+                </button>
+              </div>
             </div>
 
             <div className="cart-header">
