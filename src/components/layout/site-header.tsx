@@ -8,6 +8,7 @@ import {
   PRODUCT_CATEGORIES,
   buildWhatsAppUrl,
 } from "@/data/packages"
+import { useCity } from "@/lib/city-context"
 
 const TICKER_ITEMS = [
   { label: "Castillos Dreamy Pastel y a Color", color: "#5CC2DE" },
@@ -21,12 +22,16 @@ export function SiteHeader() {
   const [megaOpen, setMegaOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [headerHidden, setHeaderHidden] = useState(false)
+  const { city, cityConfig, switchCity } = useCity()
 
   const bannerRef = useRef<HTMLDivElement>(null)
   const tickerTrackRef = useRef<HTMLDivElement>(null)
   const tickerGroupRef = useRef<HTMLDivElement>(null)
 
-  const generalWaUrl = buildWhatsAppUrl({})
+  const generalWaUrl = buildWhatsAppUrl({
+    district: cityConfig.whatsappCityLabel,
+  })
+  const catalogAnchorHref = `${cityConfig.homePath}#hbr-home-range`
 
   // 1. Measure Top Announcement Ticker for smooth infinite scroll
   useEffect(() => {
@@ -214,7 +219,7 @@ export function SiteHeader() {
                   className={`amegamenu-item ${megaOpen ? "hbr-sub-open" : ""}`}
                 >
                   <Link
-                    href="/#hbr-home-range"
+                    href={catalogAnchorHref}
                     onClick={() => setMegaOpen(false)}
                   >
                     Catálogo
@@ -252,7 +257,7 @@ export function SiteHeader() {
                         </p>
                         <Link
                           className="hbr-mega__all"
-                          href="/#hbr-home-range"
+                          href={catalogAnchorHref}
                           onClick={() => setMegaOpen(false)}
                         >
                           Ver los {PACKAGES_DATA.length} productos{" "}
@@ -336,9 +341,9 @@ export function SiteHeader() {
           {/* Center Brand Logo */}
           <div className="hbr-header__logo">
             <Link
-              href="/"
+              href={cityConfig.homePath}
               className="hbr-header__logo-link"
-              aria-label="Diamante Azul — Ir al inicio"
+              aria-label={`Diamante Azul — Ir al inicio (${cityConfig.name})`}
             >
               <Image
                 src="/images/home/logo_diamante_azul.webp"
@@ -351,8 +356,50 @@ export function SiteHeader() {
             </Link>
           </div>
 
-          {/* Right Action Capsule */}
+          {/* Right Action Capsule: City Switcher (Lima default | Arequipa) + WhatsApp */}
           <div className="hbr-header__right">
+            <div
+              className="hbr-city-switcher"
+              role="group"
+              aria-label="Seleccionar ciudad"
+            >
+              <span className="hbr-city-switcher__pin" aria-hidden="true">
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </span>
+              <button
+                type="button"
+                className={`hbr-city-switcher__btn ${
+                  city === "lima" ? "is-active" : ""
+                }`}
+                aria-pressed={city === "lima"}
+                onClick={() => switchCity("lima")}
+              >
+                Lima
+              </button>
+              <button
+                type="button"
+                className={`hbr-city-switcher__btn ${
+                  city === "arequipa" ? "is-active" : ""
+                }`}
+                aria-pressed={city === "arequipa"}
+                onClick={() => switchCity("arequipa")}
+              >
+                Arequipa
+              </button>
+            </div>
+
             <div className="cart-header">
               <a
                 className="cart-link"
@@ -417,6 +464,42 @@ export function SiteHeader() {
         </div>
         <div className="hbr-mobile-drawer__content">
           <nav className="hbr-mnav" aria-label="Catálogo móvil">
+            <div className="hbr-mnav__city-box">
+              <p className="hbr-mnav__eyebrow">CIUDAD DE ATENCIÓN</p>
+              <div
+                className="hbr-mnav__city-pills"
+                role="group"
+                aria-label="Seleccionar ciudad"
+              >
+                <button
+                  type="button"
+                  className={`hbr-mnav__city-btn ${
+                    city === "lima" ? "is-active" : ""
+                  }`}
+                  aria-pressed={city === "lima"}
+                  onClick={() => {
+                    switchCity("lima")
+                    setDrawerOpen(false)
+                  }}
+                >
+                  Lima (Principal)
+                </button>
+                <button
+                  type="button"
+                  className={`hbr-mnav__city-btn ${
+                    city === "arequipa" ? "is-active" : ""
+                  }`}
+                  aria-pressed={city === "arequipa"}
+                  onClick={() => {
+                    switchCity("arequipa")
+                    setDrawerOpen(false)
+                  }}
+                >
+                  Arequipa
+                </button>
+              </div>
+            </div>
+
             <p className="hbr-mnav__eyebrow">PRODUCTOS POR TIPO</p>
             <h3 className="hbr-mnav__title">
               Explora nuestras categorías
@@ -458,7 +541,7 @@ export function SiteHeader() {
             </div>
             <Link
               className="hbr-mnav__all"
-              href="/#hbr-home-range"
+              href={catalogAnchorHref}
               onClick={() => setDrawerOpen(false)}
             >
               <span>Ver los {PACKAGES_DATA.length} productos del catálogo</span>
@@ -467,8 +550,8 @@ export function SiteHeader() {
 
             <div className="hbr-mnav__links">
               <p className="hbr-mnav__eyebrow">MÁS DE DIAMANTE AZUL</p>
-              <Link href="/" onClick={() => setDrawerOpen(false)}>
-                Inicio <span aria-hidden="true">↗</span>
+              <Link href={cityConfig.homePath} onClick={() => setDrawerOpen(false)}>
+                Inicio ({cityConfig.name}) <span aria-hidden="true">↗</span>
               </Link>
               <Link
                 href="/quienes-somos"

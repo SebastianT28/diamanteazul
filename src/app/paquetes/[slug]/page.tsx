@@ -28,8 +28,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${pkg.tierName}: ${pkg.title} | Alquiler de Inflables Diamante Azul`,
-    description: `${pkg.shortDescription} Espacio requerido: ${pkg.specs.minSpace}. Servicio con limpieza previa, puntualidad y personal uniformado en Lima Moderna.`,
+    title: `${pkg.tierName}: ${pkg.title} | Alquiler de Inflables en Lima y Arequipa — Diamante Azul`,
+    description: `${pkg.shortDescription} Medida: ${pkg.specs.minSpace}. Alquiler con montaje, desinfección y personal de apoyo en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis) y en la ciudad de Arequipa.`,
   }
 }
 

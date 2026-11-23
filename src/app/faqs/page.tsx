@@ -3,9 +3,9 @@ import { FaqInteractive } from "@/components/faqs/faq-interactive"
 
 export const metadata: Metadata = {
   title:
-    "Preguntas Frecuentes (FAQs) | Diamante Azul — Alquiler de Inflables Pastel en Lima",
+    "Preguntas Frecuentes (FAQs) | Diamante Azul — Alquiler de Inflables en Lima y Arequipa",
   description:
-  "Pequeñas dudas, Respuestas rápidas. Encuentra respuestas sobre instalación interior y exterior, tiempos de inflado, seguridad, desinfección y reservas de castillos inflables en Lima.",
+    "Encuentra respuestas sobre instalación, cobertura en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis y zonas cercanas) y en la ciudad de Arequipa, seguridad, desinfección y reservas.",
 }
 
 export default function FaqsPage() {

@@ -4,6 +4,7 @@ import { ChangeEvent, FormEvent, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { buildWhatsAppUrl, WHATSAPP_CONFIG } from "@/data/packages"
+import { useCity } from "@/lib/city-context"
 
 const SUBJECT_OPTIONS = [
   "Atención al Cliente y Reservas",
@@ -13,6 +14,7 @@ const SUBJECT_OPTIONS = [
 ]
 
 export function ContactInteractive() {
+  const { city, cityConfig } = useCity()
   const [subject, setSubject] = useState(SUBJECT_OPTIONS[0])
   const [email, setEmail] = useState("")
   const [fileName, setFileName] = useState("")
@@ -36,8 +38,8 @@ export function ContactInteractive() {
     const cleanEmail = email.trim() ? ` (${email.trim()})` : ""
     const cleanMsg = message.trim()
       ? message.trim()
-      : "Hola Diamante Azul, quisiera recibir información sobre sus paquetes de alquiler de castillos inflables."
-    return `Hola Diamante Azul, les escribo desde Contáctanos [${subject}${cleanEmail}]: ${cleanMsg}`
+      : `Hola Diamante Azul, quisiera recibir información sobre sus paquetes de alquiler de juegos inflables en ${cityConfig.name}.`
+    return `Hola Diamante Azul, les escribo desde Contáctanos [${cityConfig.name} · ${subject}${cleanEmail}]: ${cleanMsg}`
   })()
 
   const whatsappHref = buildWhatsAppUrl(whatsappMessage)
@@ -137,6 +139,15 @@ export function ContactInteractive() {
               >
                 hola@diamanteazul.pe
               </a>
+            </div>
+
+            <div className="hb-contact__support-item">
+              <h3>Cobertura en {cityConfig.name}</h3>
+              <p>
+                {city === "lima"
+                  ? "Atención prioritaria en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo y San Luis) y zonas cercanas."
+                  : "Atención y cobertura completa para cumpleaños infantiles y eventos en la ciudad de Arequipa."}
+              </p>
             </div>
 
             <div className="hb-contact__support-item">

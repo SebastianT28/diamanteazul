@@ -4,6 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { buildWhatsAppUrl } from "@/data/packages"
+import { useCity } from "@/lib/city-context"
 
 type FaqFilterId = "all" | "bounce" | "mini" | "ordering" | "safety"
 
@@ -107,6 +108,24 @@ const FAQ_GROUPS: FaqGroupData[] = [
             y 1 metro en la parte posterior para ubicar la turbina con total
             comodidad, además de verificar la altura libre del techo si es en
             interior.
+          </p>
+        ),
+      },
+      {
+        id: "bounce-7",
+        question:
+          "¿En qué distritos de Lima y zonas de Arequipa brindan el servicio?",
+        answer: (
+          <p>
+            En <strong>Lima</strong> nos enfocamos principalmente en{" "}
+            <strong>Lima Moderna</strong>, priorizando distritos como{" "}
+            <strong>
+              San Isidro, Miraflores, Santiago de Surco, San Borja, Magdalena
+              del Mar, Surquillo y San Luis
+            </strong>
+            , además de zonas cercanas donde sea viable brindar el servicio.
+            Asimismo, contamos con cobertura completa de alquiler e instalación
+            en la ciudad de <strong>Arequipa</strong>.
           </p>
         ),
       },
@@ -236,6 +255,7 @@ const MOSAIC_TILES: MosaicTile[] = [
 export function FaqInteractive() {
   const [activeFilter, setActiveFilter] = useState<FaqFilterId>("all")
   const [openItemId, setOpenItemId] = useState<string | null>("bounce-1")
+  const { city, cityConfig } = useCity()
 
   const visibleGroups = FAQ_GROUPS.filter(
     (g) => activeFilter === "all" || g.id === activeFilter
@@ -271,7 +291,7 @@ export function FaqInteractive() {
   }
 
   const waHelpUrl = buildWhatsAppUrl(
-    "Hola Diamante Azul, tengo una consulta sobre el alquiler de castillos inflables."
+    `Hola Diamante Azul, tengo una consulta sobre el alquiler de juegos inflables en ${cityConfig.name}.`
   )
 
   return (
@@ -405,8 +425,10 @@ export function FaqInteractive() {
               </h3>
               <p data-hbf-empty-copy="">
                 {activeFilter === "mini"
-                  ? "Para asesoría personalizada sobre nuestros modelos Mini Blanco y Mini Arcoíris para interiores o departamentos, escríbenos directo a nuestro equipo."
-                  : "Para ayuda con disponibilidad de fechas, cobertura por distrito en Lima o detalles de tu reserva, contáctanos por WhatsApp."}
+                  ? "Para asesoría personalizada sobre nuestros modelos compactos para interiores o departamentos, escríbenos directo a nuestro equipo."
+                  : city === "lima"
+                    ? "Para ayuda con disponibilidad de fechas, cobertura en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis y zonas cercanas) o detalles de tu reserva, contáctanos por WhatsApp."
+                    : "Para ayuda con disponibilidad de fechas, cobertura en la ciudad de Arequipa o detalles de tu reserva, contáctanos por WhatsApp."}
               </p>
               <a
                 className="hb-story__button"

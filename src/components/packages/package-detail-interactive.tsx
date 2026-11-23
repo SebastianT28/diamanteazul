@@ -8,6 +8,7 @@ import {
   buildWhatsAppUrl,
   type InflatablePackage,
 } from "@/data/packages"
+import { useCity } from "@/lib/city-context"
 
 interface PackageDetailInteractiveProps {
   pkg: InflatablePackage
@@ -16,6 +17,8 @@ interface PackageDetailInteractiveProps {
 export function PackageDetailInteractive({
   pkg,
 }: PackageDetailInteractiveProps) {
+  const { city, cityConfig } = useCity()
+
   const defaultSizeIdx = React.useMemo(() => {
     const idx = pkg.sizeOptions.findIndex((s) => s.isDefault)
     return idx >= 0 ? idx : 0
@@ -105,9 +108,16 @@ export function PackageDetailInteractive({
       pkg.slug === "plataforma-360"
         ? activeSize.label
         : `${activeSize.label} · ${pkg.rentalDurationPill}`
-    const customMessage = `Hola Diamante Azul, deseo consultar disponibilidad y reservar *${pkg.title}* (${timePart} — ${activeSize.price}).`
+    const customMessage = `Hola Diamante Azul, deseo consultar disponibilidad en *${cityConfig.whatsappCityLabel}* y reservar *${pkg.title}* (${timePart} — ${activeSize.price}).`
     return buildWhatsAppUrl({ customMessage })
-  }, [pkg.slug, pkg.title, pkg.rentalDurationPill, activeSize.label, activeSize.price])
+  }, [
+    pkg.slug,
+    pkg.title,
+    pkg.rentalDurationPill,
+    activeSize.label,
+    activeSize.price,
+    cityConfig.whatsappCityLabel,
+  ])
 
   return (
     <main className="hbr-pdp">
@@ -116,7 +126,7 @@ export function PackageDetailInteractive({
         <div className="container">
           <ol className="breadcrumb">
             <li>
-              <Link href="/" aria-label="Inicio">
+              <Link href={cityConfig.homePath} aria-label="Inicio">
                 <svg
                   width="14"
                   height="14"
@@ -129,7 +139,9 @@ export function PackageDetailInteractive({
             </li>
             <li className="breadcrumb-chevron">&gt;</li>
             <li>
-              <Link href={`/#cat-${pkg.category}`}>{pkg.categoryName}</Link>
+              <Link href={`${cityConfig.homePath}#cat-${pkg.category}`}>
+                {pkg.categoryName}
+              </Link>
             </li>
             <li className="breadcrumb-chevron">&gt;</li>
             <li id="breadcrumbCurrentName">{pkg.title}</li>
@@ -409,7 +421,10 @@ export function PackageDetailInteractive({
               <div className="delivery-countdown-banner__text">
                 <div className="delivery-countdown-banner__line1">
                   Incluye{" "}
-                  <strong>montaje, desinfección y personal de apoyo</strong>
+                  <strong>montaje, desinfección y personal de apoyo</strong> en{" "}
+                  <strong>
+                    {city === "lima" ? "Lima Moderna" : "Arequipa"}
+                  </strong>
                 </div>
                 <div className="delivery-countdown-banner__line2">
                   Separa tu fecha con el <strong>50% de adelanto</strong> vía

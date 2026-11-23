@@ -3,16 +3,18 @@
 import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { buildWhatsAppUrl, SOCIAL_LINKS } from "@/data/packages"
+import { useCity } from "@/lib/city-context"
 
 export function SiteFooter() {
   const [contactValue, setContactValue] = useState("")
+  const { cityConfig } = useCity()
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const trimmed = contactValue.trim()
     const message = trimmed
-      ? `Hola Diamante Azul, quiero unirme a las novedades / hacer una consulta. Mi contacto es: ${trimmed}`
-      : "Hola Diamante Azul, quiero consultar disponibilidad de sus paquetes de inflables."
+      ? `Hola Diamante Azul, quiero unirme a las novedades / hacer una consulta desde ${cityConfig.name}. Mi contacto es: ${trimmed}`
+      : `Hola Diamante Azul, quiero consultar disponibilidad de sus paquetes de inflables en ${cityConfig.name}.`
     window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer")
   }
 
@@ -90,7 +92,9 @@ export function SiteFooter() {
             <nav aria-label="Enlaces de pie de página">
               <ul className="hbf-footer__links">
                 <li>
-                  <Link href="/#hbr-home-range">Todos los Paquetes</Link>
+                  <Link href={`${cityConfig.homePath}#hbr-home-range`}>
+                    Todos los Paquetes
+                  </Link>
                 </li>
                 <li>
                   <Link href="/quienes-somos">Quiénes Somos</Link>
@@ -157,8 +161,8 @@ export function SiteFooter() {
           {/* Bottom Legal */}
           <div className="hbf-footer__bottom">
             <span>
-              © 2026 Diamante Azul — Alquiler de Inflables y Eventos. Todos los
-              derechos reservados.
+              © 2026 Diamante Azul — Alquiler de Inflables y Eventos en Lima y
+              Arequipa. Todos los derechos reservados.
             </span>
             <nav className="hbf-footer__legal" aria-label="Información legal">
               <Link href="/politica-de-privacidad">Política de Privacidad</Link>
@@ -172,7 +176,7 @@ export function SiteFooter() {
       <a
         id="hbr-chat-tab"
         href={buildWhatsAppUrl(
-          "Hola Diamante Azul, necesito ayuda con un paquete"
+          `Hola Diamante Azul, necesito ayuda con un paquete en ${cityConfig.name}`
         )}
         target="_blank"
         rel="noopener noreferrer"

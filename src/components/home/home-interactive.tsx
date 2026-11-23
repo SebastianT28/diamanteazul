@@ -8,6 +8,7 @@ import {
   PRODUCT_CATEGORIES,
   type ProductCategorySlug,
 } from "@/data/packages";
+import { CITY_CONFIG, useCity, type CitySlug } from "@/lib/city-context";
 
 type FilterCategory = "all" | ProductCategorySlug;
 
@@ -253,7 +254,15 @@ function UspItems() {
 
 const HERO_BUBBLE_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] as const;
 
-export function HomeInteractive() {
+export function HomeInteractive({
+  initialCity,
+}: {
+  initialCity?: CitySlug;
+} = {}) {
+  const { city } = useCity();
+  const effectiveCity: CitySlug = initialCity ?? city;
+  const activeCityConfig = CITY_CONFIG[effectiveCity];
+
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [isMobileUsps, setIsMobileUsps] = useState(false);
   const [reviewColumnCount, setReviewColumnCount] = useState(3);
@@ -442,10 +451,7 @@ export function HomeInteractive() {
               <br />
               Gran felicidad.
             </h1>
-            <p>
-              Juegos inflables hermosos y seguros para cumpleaños y eventos
-              inolvidables.
-            </p>
+            <p>{activeCityConfig.heroSubtitle}</p>
             <a href="#hbr-home-range" className="hbr-hero-button">
               Explorar Catálogo
             </a>
@@ -494,11 +500,8 @@ export function HomeInteractive() {
         aria-label="Catálogo de productos por categoría"
       >
         <div className="hbr-home-range-heading">
-          <h2>Encuentra su favorito.</h2>
-          <p>
-            Explora nuestros {PACKAGES_DATA.length} productos organizados por
-            categoría para tu celebración.
-          </p>
+          <h2>Encuentra su favorito en {activeCityConfig.name}.</h2>
+          <p>{activeCityConfig.catalogSubtitle}</p>
         </div>
 
         <div

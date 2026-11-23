@@ -1974,6 +1974,11 @@ export const PACKAGES_DATA: InflatablePackage[] = RAW_PRODUCTS.map((seed) => {
         "Se reserva la fecha con el 50% de adelanto (vía Yape al 948 311 603 o transferencia bancaria BCP) y el 50% restante se cancela el día del evento en cuanto el equipo quede instalado en la locación. Los precios del catálogo no incluyen IGV. Reservas sujetas a disponibilidad de fecha.",
     },
     {
+      title: "Zonas de cobertura (Lima Moderna y Arequipa)",
+      content:
+        "En Lima atendemos principalmente Lima Moderna (San Isidro, Miraflores, Santiago de Surco, San Borja, Magdalena del Mar, Surquillo y San Luis) y zonas cercanas donde sea viable brindar el servicio. También brindamos cobertura completa para eventos y cumpleaños en la ciudad de Arequipa.",
+    },
+    {
       title: "Requisitos de espacio y electricidad",
       content:
         seed.category === "complementos-extras"
