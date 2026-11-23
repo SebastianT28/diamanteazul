@@ -15,6 +15,7 @@ export interface EditableImageSlot {
   subtitle: string
   path: string
   recommendedSize: string
+  recommendedFormat: string
 }
 
 const HOME_SLOTS: EditableImageSlot[] = [
@@ -25,7 +26,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Logo Oficial Diamante Azul",
     subtitle: "Cabecera principal del sitio web (Desktop y Móvil)",
     path: "/images/home/logo_diamante_azul.webp",
-    recommendedSize: "520 × 176 px (WebP fondo transparente)",
+    recommendedSize: "520 × 176 px (fondo transparente)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-hero",
@@ -34,7 +36,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Portada Principal (Hero Home)",
     subtitle: "Imagen principal de portada en Inicio (Lima y Arequipa)",
     path: "/images/home/home_hero_portada-02.webp",
-    recommendedSize: "1920 × 1080 px (16:9 WebP)",
+    recommendedSize: "1920 × 1080 px (16:9)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-momento-1",
@@ -43,7 +46,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Momento 1: Tardes en sala o terraza",
     subtitle: "Sección «Para los días que siempre recordarán»",
     path: "/images/home/home_momento_1_sala.webp",
-    recommendedSize: "800 × 600 px (4:3 WebP)",
+    recommendedSize: "800 × 600 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-momento-2",
@@ -52,7 +56,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Momento 2: Sol y diversión en el jardín",
     subtitle: "Sección «Para los días que siempre recordarán»",
     path: "/images/home/home_momento_2_jardin.webp",
-    recommendedSize: "800 × 600 px (4:3 WebP)",
+    recommendedSize: "800 × 600 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-momento-3",
@@ -61,7 +66,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Momento 3: Tardes de amigos más felices",
     subtitle: "Sección «Para los días que siempre recordarán»",
     path: "/images/home/home_momento_3_amigos.webp",
-    recommendedSize: "800 × 600 px (4:3 WebP)",
+    recommendedSize: "800 × 600 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-momento-4",
@@ -70,7 +76,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Momento 4: Días refrescantes de verano",
     subtitle: "Sección «Para los días que siempre recordarán»",
     path: "/images/home/home_momento_4_familia.webp",
-    recommendedSize: "800 × 600 px (4:3 WebP)",
+    recommendedSize: "800 × 600 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-momento-5",
@@ -79,7 +86,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Momento 5: Cumpleaños y eventos con estilo",
     subtitle: "Sección «Para los días que siempre recordarán»",
     path: "/images/home/home_momento_5_cumpleanos.webp",
-    recommendedSize: "800 × 600 px (4:3 WebP)",
+    recommendedSize: "800 × 600 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "home-momento-6",
@@ -88,7 +96,8 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Momento 6: Diversión sin preocupaciones",
     subtitle: "Sección «Para los días que siempre recordarán»",
     path: "/images/home/home_momento_6_instalacion.webp",
-    recommendedSize: "800 × 600 px (4:3 WebP)",
+    recommendedSize: "800 × 600 px (4:3)",
+    recommendedFormat: "Webp",
   },
 ]
 
@@ -109,7 +118,8 @@ const CATALOG_SLOTS: EditableImageSlot[] = (() => {
         title: `${pkg.title}${viewSuffix}`,
         subtitle: `${pkg.categoryName} · ${pkg.collectionName} (${pkg.price})`,
         path: imgPath,
-        recommendedSize: "1000 × 1000 px (1:1 WebP)",
+        recommendedSize: "1000 × 1000 px (1:1)",
+        recommendedFormat: "Webp",
       })
     })
   }
@@ -124,7 +134,8 @@ const ABOUT_SLOTS: EditableImageSlot[] = [
     title: "Portada Quiénes Somos",
     subtitle: "Banner superior de la página Quiénes Somos",
     path: "/images/pages/quienes_somos_portada.webp",
-    recommendedSize: "1920 × 1080 px (16:9 WebP)",
+    recommendedSize: "1920 × 1080 px (16:9)",
+    recommendedFormat: "Webp",
   },
   {
     key: "about-journey-2022",
@@ -133,7 +144,8 @@ const ABOUT_SLOTS: EditableImageSlot[] = [
     title: "Nuestro Recorrido — 2022",
     subtitle: "Tarjeta 1 del carrusel «Un pequeño salto a través del tiempo»",
     path: "/images/pages/recorrido_1_2022.webp",
-    recommendedSize: "1000 × 750 px (4:3 WebP)",
+    recommendedSize: "1000 × 750 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "about-journey-2023",
@@ -142,7 +154,8 @@ const ABOUT_SLOTS: EditableImageSlot[] = [
     title: "Nuestro Recorrido — 2023",
     subtitle: "Tarjeta 2 del carrusel «Un pequeño salto a través del tiempo»",
     path: "/images/pages/recorrido_2_2023.webp",
-    recommendedSize: "1000 × 750 px (4:3 WebP)",
+    recommendedSize: "1000 × 750 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "about-journey-2025",
@@ -151,7 +164,8 @@ const ABOUT_SLOTS: EditableImageSlot[] = [
     title: "Nuestro Recorrido — 2025",
     subtitle: "Tarjeta 3 del carrusel «Un pequeño salto a través del tiempo»",
     path: "/images/pages/recorrido_3_2025.webp",
-    recommendedSize: "1000 × 750 px (4:3 WebP)",
+    recommendedSize: "1000 × 750 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "about-journey-2026",
@@ -160,7 +174,8 @@ const ABOUT_SLOTS: EditableImageSlot[] = [
     title: "Nuestro Recorrido — 2026",
     subtitle: "Tarjeta 4 del carrusel «Un pequeño salto a través del tiempo»",
     path: "/images/pages/recorrido_4_2026.webp",
-    recommendedSize: "1000 × 750 px (4:3 WebP)",
+    recommendedSize: "1000 × 750 px (4:3)",
+    recommendedFormat: "Webp",
   },
   {
     key: "about-details",
@@ -169,7 +184,8 @@ const ABOUT_SLOTS: EditableImageSlot[] = [
     title: "Sección «Está en los detalles»",
     subtitle: "Imagen lateral de calidad y acabados en Quiénes Somos",
     path: "/images/pages/quienes_somos_detalles.webp",
-    recommendedSize: "1000 × 1000 px (1:1 WebP)",
+    recommendedSize: "1000 × 1000 px (1:1)",
+    recommendedFormat: "Webp",
   },
 ]
 
@@ -181,7 +197,8 @@ const PAGES_SLOTS: EditableImageSlot[] = [
     title: "Portada Preguntas Frecuentes (FAQs)",
     subtitle: "Banner superior de la página de FAQs",
     path: "/images/pages/faqs_portada.webp",
-    recommendedSize: "1920 × 1080 px (16:9 WebP)",
+    recommendedSize: "1920 × 1080 px (16:9)",
+    recommendedFormat: "Webp",
   },
   {
     key: "contact-hero",
@@ -190,7 +207,8 @@ const PAGES_SLOTS: EditableImageSlot[] = [
     title: "Portada Contáctanos",
     subtitle: "Banner superior de la página Contáctanos",
     path: "/images/pages/contactanos_portada.webp",
-    recommendedSize: "1920 × 1080 px (16:9 WebP)",
+    recommendedSize: "1920 × 1080 px (16:9)",
+    recommendedFormat: "Webp",
   },
 ]
 
@@ -206,7 +224,8 @@ const MOSAIC_SLOTS: EditableImageSlot[] = Array.from({ length: 10 }, (_, i) => {
         ? "Foto #8 (con frase superpuesta en el mosaico)"
         : `Foto #${num} de la galería inferior en Quiénes Somos y FAQs`,
     path: `/images/pages/mosaico_${num}.webp`,
-    recommendedSize: "600 × 600 px (1:1 WebP)",
+    recommendedSize: "600 × 600 px (1:1)",
+    recommendedFormat: "Webp",
   }
 })
 

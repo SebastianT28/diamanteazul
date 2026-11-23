@@ -15,9 +15,13 @@ interface PackageDetailInteractiveProps {
 }
 
 export function PackageDetailInteractive({
-  pkg,
+  pkg: initialPkg,
 }: PackageDetailInteractiveProps) {
-  const { city, cityConfig } = useCity()
+  const { city, cityConfig, catalogProducts } = useCity()
+  const pkg = React.useMemo(
+    () => catalogProducts.find((p) => p.slug === initialPkg.slug) ?? initialPkg,
+    [catalogProducts, initialPkg]
+  )
 
   const defaultSizeIdx = React.useMemo(() => {
     const idx = pkg.sizeOptions.findIndex((s) => s.isDefault)
@@ -108,8 +112,33 @@ export function PackageDetailInteractive({
   const hasMultipleImages = galleryImages.length > 1
 
   const relatedCategoryModels = React.useMemo(() => {
-    return MODEL_SWITCHER_ITEMS.filter((m) => m.category === pkg.category)
-  }, [pkg.category])
+    const inCat = catalogProducts.filter((m) => m.category === pkg.category)
+    if (inCat.length === 0) {
+      return MODEL_SWITCHER_ITEMS.filter((m) => m.category === pkg.category)
+    }
+    return inCat.map((item) => {
+      const clean = item.title.replace(/\s*\(.*?\)\s*/g, "").trim()
+      const words = clean.split(/\s+/)
+      const shortLines: [string, string] =
+        words.length === 1
+          ? [words[0], ""]
+          : words.length === 2
+            ? [words[0], words[1]]
+            : [
+                words.slice(0, Math.ceil(words.length / 2)).join(" "),
+                words.slice(Math.ceil(words.length / 2)).join(" "),
+              ]
+      return {
+        slug: item.slug,
+        title: item.title,
+        shortLines,
+        price: item.price,
+        regularPrice: item.regularPrice,
+        category: item.category,
+        image: item.image,
+      }
+    })
+  }, [pkg.category, catalogProducts])
 
   const handlePrevThumb = () => {
     setSelectedThumbIdx(

@@ -1,7 +1,8 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { PACKAGES_DATA, getPackageBySlug } from "@/data/packages"
+import { PACKAGES_DATA } from "@/data/packages"
+import { getEffectivePackageBySlug } from "@/lib/admin-db"
 import { PackageDetailInteractive } from "@/components/packages/package-detail-interactive"
 
 interface PackagePageProps {
@@ -17,9 +18,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: PackagePageProps): Promise<Metadata> {
-  "use cache"
   const { slug } = await params
-  const pkg = getPackageBySlug(slug)
+  const pkg = await getEffectivePackageBySlug(slug)
 
   if (!pkg) {
     return {
@@ -53,9 +53,8 @@ export async function generateMetadata({
 }
 
 async function PackageDetailContent({ params }: PackagePageProps) {
-  "use cache"
   const { slug } = await params
-  const pkg = getPackageBySlug(slug)
+  const pkg = await getEffectivePackageBySlug(slug)
 
   if (!pkg) {
     notFound()

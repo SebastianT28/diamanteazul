@@ -259,7 +259,7 @@ export function HomeInteractive({
 }: {
   initialCity?: CitySlug;
 } = {}) {
-  const { city } = useCity();
+  const { city, catalogProducts } = useCity();
   const effectiveCity: CitySlug = initialCity ?? city;
   const activeCityConfig = CITY_CONFIG[effectiveCity];
 
@@ -533,7 +533,7 @@ export function HomeInteractive({
             aria-pressed={activeFilter === "all"}
             onClick={() => setActiveFilter("all")}
           >
-            Todos ({PACKAGES_DATA.length})
+            Todos ({catalogProducts.length})
           </button>
           {PRODUCT_CATEGORIES.map((cat) => (
             <button
@@ -549,7 +549,7 @@ export function HomeInteractive({
         </div>
 
         <div className="hbr-catalog-grid" id="da-catalog-grid">
-          {PACKAGES_DATA.map((pkg) => {
+          {catalogProducts.map((pkg) => {
             const isHidden =
               activeFilter !== "all" && pkg.category !== activeFilter;
             return (

@@ -25,7 +25,7 @@ export function SiteHeader() {
   const [drawerLoaded, setDrawerLoaded] = useState(false)
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false)
   const [headerHidden, setHeaderHidden] = useState(false)
-  const { city, cityConfig, switchCity } = useCity()
+  const { city, cityConfig, switchCity, catalogProducts } = useCity()
 
   const bannerRef = useRef<HTMLDivElement>(null)
   const tickerTrackRef = useRef<HTMLDivElement>(null)
@@ -297,13 +297,13 @@ export function SiteHeader() {
                           href={catalogAnchorHref}
                           onClick={() => setMegaOpen(false)}
                         >
-                          Ver los {PACKAGES_DATA.length} productos{" "}
+                          Ver los {catalogProducts.length} productos{" "}
                           <span aria-hidden="true">→</span>
                         </Link>
                       </div>
                       <div className="hbr-mega__groups hbr-mega__groups--five">
                         {PRODUCT_CATEGORIES.map((cat) => {
-                          const catProducts = PACKAGES_DATA.filter(
+                          const catProducts = catalogProducts.filter(
                             (p) => p.category === cat.slug
                           )
                           const previewItems = catProducts.slice(0, 3)
@@ -628,7 +628,7 @@ export function SiteHeader() {
             </h3>
             <div className="hbr-mnav__models">
               {PRODUCT_CATEGORIES.map((cat) => {
-                const firstProd = PACKAGES_DATA.find(
+                const firstProd = catalogProducts.find(
                   (p) => p.category === cat.slug
                 )
                 return (
@@ -664,7 +664,7 @@ export function SiteHeader() {
               href={catalogAnchorHref}
               onClick={() => setDrawerOpen(false)}
             >
-              <span>Ver los {PACKAGES_DATA.length} productos del catálogo</span>
+              <span>Ver los {catalogProducts.length} productos del catálogo</span>
               <span aria-hidden="true">→</span>
             </Link>
 

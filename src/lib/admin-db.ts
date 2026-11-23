@@ -6,6 +6,13 @@ import {
   DEFAULT_ADMIN_USERNAME,
 } from "@/lib/admin-auth"
 import { EDITABLE_IMAGE_SLOTS } from "@/data/site-images-catalog"
+import {
+  PACKAGES_DATA,
+  PRODUCT_CATEGORIES,
+  getPackageBySlug,
+  type InflatablePackage,
+  type ProductCategorySlug,
+} from "@/data/packages"
 
 export interface StoredAdminUser {
   username: string
@@ -20,9 +27,35 @@ export interface ImageOverrideMeta {
   updatedAt: number
 }
 
+export interface ProductChangeRecord {
+  slug: string
+  action: "upsert" | "delete"
+  product?: InflatablePackage
+  updatedAt: number
+}
+
+export interface AdminProductFormInput {
+  slug?: string
+  title: string
+  category: ProductCategorySlug
+  collectionName: string
+  price: string
+  dimensions: string
+  cardDimensionTag?: string
+  rentalDurationTag: string // e.g. "5 hrs", "3 hrs", "Por evento"
+  subtitle: string
+  description: string
+  ages: string
+  extraHour?: string
+  isNew?: boolean
+  bulletsText?: string // newline-separated bullet strings
+  imagePath?: string
+}
+
 interface LocalStoreFile {
   adminUser: StoredAdminUser
   overrides: Record<string, ImageOverrideMeta>
+  productChanges?: Record<string, ProductChangeRecord>
 }
 
 const LOCAL_STORE_PATH = path.join(process.cwd(), "data", "admin-store.json")
@@ -80,6 +113,17 @@ async function ensureMySqlSchema(): Promise<boolean> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `)
 
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS site_products (
+        slug VARCHAR(140) PRIMARY KEY,
+        action VARCHAR(20) NOT NULL DEFAULT 'upsert',
+        product_json LONGTEXT NULL,
+        image_mime VARCHAR(60) NULL DEFAULT 'image/webp',
+        image_data LONGBLOB NULL,
+        updated_at BIGINT NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `)
+
     const [rows] = await db.execute<mysql.RowDataPacket[]>(
       "SELECT COUNT(*) AS cnt FROM admin_users"
     )
@@ -110,6 +154,7 @@ async function readLocalStore(): Promise<LocalStoreFile> {
         updatedAt: new Date().toISOString(),
       },
       overrides: parsed.overrides ?? {},
+      productChanges: parsed.productChanges ?? {},
     }
   } catch {
     return {
@@ -119,6 +164,7 @@ async function readLocalStore(): Promise<LocalStoreFile> {
         updatedAt: new Date().toISOString(),
       },
       overrides: {},
+      productChanges: {},
     }
   }
 }
@@ -327,6 +373,43 @@ export async function restoreOriginalSlotImage(slotKey: string): Promise<void> {
 export async function getSlotImageBinary(
   slotKey: string
 ): Promise<{ buffer: Buffer; mimeType: string } | null> {
+  // Support custom product image keys: prod-img-<slug>
+  if (slotKey.startsWith("prod-img-")) {
+    const prodSlug = slotKey.replace("prod-img-", "")
+    if (await ensureMySqlSchema()) {
+      try {
+        const db = getPool()
+        const [rows] = await db.execute<mysql.RowDataPacket[]>(
+          "SELECT image_mime, image_data FROM site_products WHERE slug = ? LIMIT 1",
+          [prodSlug]
+        )
+        if (rows.length > 0 && rows[0].image_data) {
+          return {
+            buffer: Buffer.isBuffer(rows[0].image_data)
+              ? rows[0].image_data
+              : Buffer.from(rows[0].image_data),
+            mimeType: String(rows[0].image_mime || "image/webp"),
+          }
+        }
+      } catch (err) {
+        console.error("[admin-db] Error reading product binary from MySQL:", err)
+      }
+    }
+    try {
+      const diskPath = path.join(
+        process.cwd(),
+        "public",
+        "images",
+        "catalogo",
+        `${prodSlug}.webp`
+      )
+      const buffer = await fs.readFile(diskPath)
+      return { buffer, mimeType: "image/webp" }
+    } catch {
+      return null
+    }
+  }
+
   const slot = EDITABLE_IMAGE_SLOTS.find((s) => s.key === slotKey)
   if (!slot) return null
 
@@ -360,5 +443,421 @@ export async function getSlotImageBinary(
     return { buffer, mimeType: "image/webp" }
   } catch {
     return null
+  }
+}
+
+// ============================================================================
+// PRODUCT CATALOG CRUD (CREATE, EDIT/MODIFY, DELETE, RESTORE)
+// ============================================================================
+
+export function slugifyProductTitle(title: string): string {
+  return title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+}
+
+function formatPriceString(raw: string): string {
+  const trimmed = raw.trim()
+  if (!trimmed) return "S/ 300"
+  if (trimmed.toUpperCase().startsWith("S/")) return trimmed
+  return `S/ ${trimmed}`
+}
+
+export function buildCompleteProductPackage(
+  input: AdminProductFormInput,
+  existing?: InflatablePackage
+): InflatablePackage {
+  const slug = (input.slug?.trim() || slugifyProductTitle(input.title)) || `producto-${Date.now()}`
+  const catInfo =
+    PRODUCT_CATEGORIES.find((c) => c.slug === input.category) ??
+    PRODUCT_CATEGORIES[0]
+  const fallbackTemplate = existing ?? PACKAGES_DATA[0]
+
+  const cleanPrice = formatPriceString(input.price)
+  const cleanDims = input.dimensions.trim() || "4m × 4m × 3m"
+  const shortDim =
+    input.cardDimensionTag?.trim() ||
+    cleanDims.split("×").slice(0, 2).map((s) => s.trim()).join(" × ") ||
+    cleanDims
+
+  const durationTag = input.rentalDurationTag.trim() || "5 hrs"
+  const durationPill =
+    durationTag === "3 hrs"
+      ? "3 Horas"
+      : durationTag === "2 hrs"
+        ? "2 Horas"
+        : durationTag.toLowerCase().includes("evento")
+          ? "Por Evento"
+          : "5 Horas"
+  const durationFull =
+    durationPill === "Por Evento"
+      ? "Por todo el evento"
+      : `${durationPill.toLowerCase()} por evento`
+
+  const rawBullets = (input.bulletsText ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  const emojis = ["✨", "🏰", "🛡️", "🎉", "⏱️"]
+  const featureBullets =
+    rawBullets.length > 0
+      ? rawBullets.map((text, idx) => ({
+          emoji: existing?.featureBullets[idx]?.emoji ?? emojis[idx % emojis.length],
+          text,
+        }))
+      : existing?.featureBullets ?? [
+          { emoji: "✨", text: `${durationPill} de alquiler con personal de apoyo` },
+          { emoji: "🏰", text: `Medidas del equipo: ${cleanDims}` },
+          { emoji: "🛡️", text: "Incluye montaje, desmontaje y desinfección certificada" },
+        ]
+
+  const imagePath =
+    input.imagePath?.trim() ||
+    existing?.image ||
+    `/images/catalogo/${slug}.webp`
+
+  const imagesList =
+    existing && existing.image === imagePath && existing.images.length > 0
+      ? existing.images
+      : [imagePath]
+
+  const extraHourVal = input.extraHour?.trim() || ""
+
+  const tableSpecs = [
+    { label: "Categoría", value: catInfo.label },
+    { label: "Línea / Colección", value: input.collectionName.trim() || catInfo.label },
+    { label: "Medidas / Formato", value: cleanDims },
+    { label: "Tiempo de alquiler", value: durationFull },
+    { label: "Edad / Público", value: input.ages.trim() || "Todas las edades" },
+    { label: "Movilidad referencial", value: "S/ 30 (sujeto a ubicación)" },
+    ...(extraHourVal ? [{ label: "Hora adicional", value: formatPriceString(extraHourVal) }] : []),
+  ]
+
+  const sizeOptions =
+    existing && existing.sizeOptions.length > 1
+      ? existing.sizeOptions.map((opt, idx) =>
+          idx === 0 ? { ...opt, label: shortDim, price: cleanPrice } : opt
+        )
+      : [
+          {
+            id: `${slug}-std`,
+            label: shortDim,
+            price: cleanPrice,
+            isDefault: true,
+          },
+        ]
+
+  return {
+    ...fallbackTemplate,
+    slug,
+    modelKey: slug,
+    category: input.category,
+    categoryName: catInfo.label,
+    collectionName: input.collectionName.trim() || catInfo.label,
+    tierName: catInfo.label,
+    title: input.title.trim(),
+    subtitle: input.subtitle.trim() || input.description.trim().slice(0, 95),
+    shortDescription: input.description.trim() || input.subtitle.trim(),
+    fullDescription: input.description.trim() || input.subtitle.trim(),
+    image: imagePath,
+    images: imagesList,
+    isNew: Boolean(input.isNew),
+    price: cleanPrice,
+    variantLabel: existing?.variantLabel ?? "Medida",
+    rentalDurationPill: durationPill,
+    sizeOptions,
+    cardTagsLabel: existing?.cardTagsLabel ?? "Medidas",
+    cardTags: [shortDim, durationTag],
+    featureBullets,
+    detailsHeading: {
+      line1: `${input.title.trim()}.`,
+      line2: "Diversión segura y garantizada.",
+    },
+    detailsIntro: input.description.trim() || input.subtitle.trim(),
+    tableSpecs,
+    specs: {
+      minSpace: cleanDims,
+      heightClearance: cleanDims,
+      recommendedAges: input.ages.trim() || "Todas las edades",
+      simultaneousCapacity: input.ages.trim() || "Todas las edades",
+      durationHours: durationFull,
+      powerRequirement: "1 punto de luz 220V cercano",
+      setupAdvanceTime: "Instalación anticipada incluida",
+    },
+    preliminaryHighlights: featureBullets.slice(0, 3).map((b) => b.text),
+  }
+}
+
+export async function getProductChangesMap(): Promise<
+  Record<string, ProductChangeRecord>
+> {
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      const [rows] = await db.execute<mysql.RowDataPacket[]>(
+        "SELECT slug, action, product_json, updated_at FROM site_products ORDER BY updated_at ASC"
+      )
+      const map: Record<string, ProductChangeRecord> = {}
+      for (const r of rows) {
+        const slug = String(r.slug)
+        const action = String(r.action) === "delete" ? "delete" : "upsert"
+        let product: InflatablePackage | undefined
+        if (r.product_json) {
+          try {
+            product = JSON.parse(String(r.product_json)) as InflatablePackage
+          } catch {
+            // Ignore malformed JSON
+          }
+        }
+        map[slug] = {
+          slug,
+          action,
+          product,
+          updatedAt: Number(r.updated_at),
+        }
+      }
+      return map
+    } catch (err) {
+      console.error("[admin-db] Error reading site_products from MySQL:", err)
+    }
+  }
+
+  const local = await readLocalStore()
+  return local.productChanges ?? {}
+}
+
+export async function getEffectiveCatalogPackages(): Promise<{
+  products: InflatablePackage[]
+  deletedSlugs: string[]
+  customSlugs: string[]
+  modifiedSlugs: string[]
+}> {
+  const changes = await getProductChangesMap()
+  const imageOverrides = await getImageOverridesMap()
+
+  const baseSlugs = new Set(PACKAGES_DATA.map((p) => p.slug))
+  const deletedSlugs: string[] = []
+  const customSlugs: string[] = []
+  const modifiedSlugs: string[] = []
+
+  const applySlotImageOverrides = (pkg: InflatablePackage): InflatablePackage => {
+    let mainImg = pkg.image
+    const updatedImages = (pkg.images ?? [pkg.image]).map((imgPath) => {
+      const matchingSlot = EDITABLE_IMAGE_SLOTS.find((s) => s.path === imgPath)
+      if (matchingSlot && imageOverrides[matchingSlot.key]) {
+        const ov = imageOverrides[matchingSlot.key]
+        const url = `/api/media/${matchingSlot.key}?v=${ov.updatedAt}`
+        if (imgPath === pkg.image) mainImg = url
+        return url
+      }
+      return imgPath
+    })
+    return {
+      ...pkg,
+      image: mainImg,
+      images: updatedImages,
+    }
+  }
+
+  const result: InflatablePackage[] = []
+
+  // 1. Existing base products (modified or untouched, unless deleted)
+  for (const basePkg of PACKAGES_DATA) {
+    const ch = changes[basePkg.slug]
+    if (ch?.action === "delete") {
+      deletedSlugs.push(basePkg.slug)
+      continue
+    }
+    if (ch?.action === "upsert" && ch.product) {
+      modifiedSlugs.push(basePkg.slug)
+      result.push(applySlotImageOverrides(ch.product))
+    } else {
+      result.push(applySlotImageOverrides(basePkg))
+    }
+  }
+
+  // 2. Newly created custom products
+  for (const [slug, ch] of Object.entries(changes)) {
+    if (!baseSlugs.has(slug) && ch.action === "upsert" && ch.product) {
+      customSlugs.push(slug)
+      result.push(ch.product)
+    }
+  }
+
+  return {
+    products: result,
+    deletedSlugs,
+    customSlugs,
+    modifiedSlugs,
+  }
+}
+
+export async function getEffectivePackageBySlug(
+  slug: string
+): Promise<InflatablePackage | undefined> {
+  const { products, deletedSlugs } = await getEffectiveCatalogPackages()
+  const direct = products.find((p) => p.slug === slug)
+  if (direct) return direct
+
+  // Check legacy aliases if not explicitly deleted
+  const baseFallback = getPackageBySlug(slug)
+  if (baseFallback && !deletedSlugs.includes(baseFallback.slug)) {
+    return products.find((p) => p.slug === baseFallback.slug) ?? baseFallback
+  }
+  return undefined
+}
+
+export async function saveCatalogProduct(
+  input: AdminProductFormInput,
+  imageBuffer?: Buffer | null,
+  imageMime?: string
+): Promise<InflatablePackage> {
+  const targetSlug =
+    (input.slug?.trim() || slugifyProductTitle(input.title)) ||
+    `producto-${Date.now()}`
+
+  const existingBase = PACKAGES_DATA.find((p) => p.slug === targetSlug)
+  const currentChanges = await getProductChangesMap()
+  const existingCurrent =
+    currentChanges[targetSlug]?.product ?? existingBase
+
+  const now = Date.now()
+  let finalImagePath = input.imagePath?.trim() || existingCurrent?.image || "/images/catalogo/arcoiris-magico.webp"
+
+  if (imageBuffer && imageBuffer.length > 0) {
+    const diskPath = path.join(
+      process.cwd(),
+      "public",
+      "images",
+      "catalogo",
+      `${targetSlug}.webp`
+    )
+    try {
+      await fs.mkdir(path.dirname(diskPath), { recursive: true })
+      await fs.writeFile(diskPath, imageBuffer)
+    } catch (err) {
+      console.warn("[admin-db] Could not write product image to public/:", err)
+    }
+    finalImagePath = `/api/media/prod-img-${targetSlug}?v=${now}`
+  }
+
+  const productObj = buildCompleteProductPackage(
+    {
+      ...input,
+      slug: targetSlug,
+      imagePath: finalImagePath,
+    },
+    existingCurrent
+  )
+
+  // Save in local store
+  const local = await readLocalStore()
+  local.productChanges = local.productChanges ?? {}
+  local.productChanges[targetSlug] = {
+    slug: targetSlug,
+    action: "upsert",
+    product: productObj,
+    updatedAt: now,
+  }
+  await writeLocalStore(local)
+
+  // Save in MySQL if configured
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      if (imageBuffer && imageBuffer.length > 0) {
+        await db.execute(
+          `INSERT INTO site_products (slug, action, product_json, image_mime, image_data, updated_at)
+           VALUES (?, 'upsert', ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             action = 'upsert',
+             product_json = VALUES(product_json),
+             image_mime = VALUES(image_mime),
+             image_data = VALUES(image_data),
+             updated_at = VALUES(updated_at)`,
+          [
+            targetSlug,
+            JSON.stringify(productObj),
+            imageMime || "image/webp",
+            imageBuffer,
+            now,
+          ]
+        )
+      } else {
+        await db.execute(
+          `INSERT INTO site_products (slug, action, product_json, updated_at)
+           VALUES (?, 'upsert', ?, ?)
+           ON DUPLICATE KEY UPDATE
+             action = 'upsert',
+             product_json = VALUES(product_json),
+             updated_at = VALUES(updated_at)`,
+          [targetSlug, JSON.stringify(productObj), now]
+        )
+      }
+    } catch (err) {
+      console.error("[admin-db] Error saving product to MySQL:", err)
+    }
+  }
+
+  return productObj
+}
+
+export async function deleteCatalogProduct(slug: string): Promise<void> {
+  const now = Date.now()
+  const isBaseProduct = PACKAGES_DATA.some((p) => p.slug === slug)
+
+  const local = await readLocalStore()
+  local.productChanges = local.productChanges ?? {}
+  if (isBaseProduct) {
+    local.productChanges[slug] = {
+      slug,
+      action: "delete",
+      updatedAt: now,
+    }
+  } else {
+    delete local.productChanges[slug]
+  }
+  await writeLocalStore(local)
+
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      if (isBaseProduct) {
+        await db.execute(
+          `INSERT INTO site_products (slug, action, product_json, updated_at)
+           VALUES (?, 'delete', NULL, ?)
+           ON DUPLICATE KEY UPDATE
+             action = 'delete',
+             product_json = NULL,
+             updated_at = VALUES(updated_at)`,
+          [slug, now]
+        )
+      } else {
+        await db.execute("DELETE FROM site_products WHERE slug = ?", [slug])
+      }
+    } catch (err) {
+      console.error("[admin-db] Error deleting product from MySQL:", err)
+    }
+  }
+}
+
+export async function restoreBaseCatalogProduct(slug: string): Promise<void> {
+  const local = await readLocalStore()
+  if (local.productChanges) {
+    delete local.productChanges[slug]
+    await writeLocalStore(local)
+  }
+
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      await db.execute("DELETE FROM site_products WHERE slug = ?", [slug])
+    } catch (err) {
+      console.error("[admin-db] Error restoring base product in MySQL:", err)
+    }
   }
 }

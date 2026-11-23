@@ -1,9 +1,9 @@
 -- ============================================================================
 -- DIAMANTE AZUL — SCRIPT DE BASE DE DATOS MYSQL (SITEGROUND GOGEEK)
 -- ============================================================================
---Nota: El backend de Next.js también ejecuta automáticamente estos CREATE TABLE
---      al conectarse a MySQL. Puedes importar este archivo en phpMyAdmin de
---      SiteGround si deseas dejar las tablas creadas manualmente.
+-- Nota: El backend de Next.js también ejecuta automáticamente estos CREATE TABLE
+--       al conectarse a MySQL. Puedes importar este archivo en phpMyAdmin de
+--       SiteGround si deseas dejar las tablas creadas manualmente.
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS `admin_users` (
@@ -18,6 +18,15 @@ CREATE TABLE IF NOT EXISTS `site_images` (
   `target_path` VARCHAR(255) NOT NULL,
   `mime_type` VARCHAR(60) NOT NULL DEFAULT 'image/webp',
   `image_data` LONGBLOB NOT NULL,
+  `updated_at` BIGINT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `site_products` (
+  `slug` VARCHAR(140) PRIMARY KEY,
+  `action` VARCHAR(20) NOT NULL DEFAULT 'upsert',
+  `product_json` LONGTEXT NULL,
+  `image_mime` VARCHAR(60) NULL DEFAULT 'image/webp',
+  `image_data` LONGBLOB NULL,
   `updated_at` BIGINT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -9,6 +9,7 @@ import React, {
   useState,
 } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { PACKAGES_DATA, type InflatablePackage } from "@/data/packages"
 
 export type CitySlug = "lima" | "arequipa"
 
@@ -79,17 +80,21 @@ interface CityContextValue {
   city: CitySlug
   cityConfig: CitySeoConfig
   switchCity: (nextCity: CitySlug) => void
+  catalogProducts: InflatablePackage[]
 }
 
 const CityContext = createContext<CityContextValue>({
   city: "lima",
   cityConfig: CITY_CONFIG.lima,
   switchCity: () => {},
+  catalogProducts: PACKAGES_DATA,
 })
 
 export function CityProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [catalogProducts, setCatalogProducts] =
+    useState<InflatablePackage[]>(PACKAGES_DATA)
 
   const routeCity: CitySlug | null = useMemo(() => {
     if (!pathname) return null
@@ -153,9 +158,35 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
       city: activeCity,
       cityConfig: CITY_CONFIG[activeCity],
       switchCity,
+      catalogProducts,
     }),
-    [activeCity, switchCity]
+    [activeCity, switchCity, catalogProducts]
   )
+
+  // Live Catalog Products Synchronizer (reflects additions, edits, and deletions made in /admin)
+  useEffect(() => {
+    let active = true
+    const loadCatalog = async () => {
+      try {
+        const res = await fetch("/api/products/catalog", { cache: "no-store" })
+        if (!res.ok) return
+        const data = (await res.json()) as {
+          products?: InflatablePackage[]
+        }
+        if (active && Array.isArray(data.products) && data.products.length > 0) {
+          setCatalogProducts(data.products)
+        }
+      } catch {
+        // Ignore
+      }
+    }
+    loadCatalog()
+    window.addEventListener("da-refresh-catalog", loadCatalog)
+    return () => {
+      active = false
+      window.removeEventListener("da-refresh-catalog", loadCatalog)
+    }
+  }, [pathname])
 
   // Live Image Overrides Synchronizer: applies any image modified in /admin across all pages
   useEffect(() => {

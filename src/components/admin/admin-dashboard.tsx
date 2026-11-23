@@ -1,17 +1,81 @@
 "use client"
 
-import React, { FormEvent, useCallback, useEffect, useMemo, useState } from "react"
+import React, {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import Link from "next/link"
 import {
   ADMIN_IMAGE_SECTIONS,
   type AdminImageSection,
   type EditableImageSlot,
 } from "@/data/site-images-catalog"
+import {
+  PRODUCT_CATEGORIES,
+  type InflatablePackage,
+  type ProductCategorySlug,
+} from "@/data/packages"
 
 interface EnrichedSlot extends EditableImageSlot {
   isOverridden: boolean
   updatedAt: number | null
   previewUrl: string
+}
+
+type AdminMainModule = "images" | "products"
+
+interface ProductFormState {
+  isEditing: boolean
+  slug: string
+  title: string
+  category: ProductCategorySlug
+  collectionName: string
+  price: string
+  dimensions: string
+  cardDimensionTag: string
+  rentalDurationTag: string
+  subtitle: string
+  description: string
+  ages: string
+  extraHour: string
+  isNew: boolean
+  bulletsText: string
+  imagePath: string
+  imageFile: File | null
+  imagePreviewUrl: string
+}
+
+const DEFAULT_COLLECTION_BY_CATEGORY: Record<ProductCategorySlug, string> = {
+  "castillos-toboganes": "Línea Dreamy Pastel",
+  "inflables-acuaticos": "Juegos Acuáticos",
+  "juegos-entretenimiento": "Juegos y Entretenimiento",
+  "sesiones-fotos": "Sesiones Fotográficas",
+  "complementos-extras": "Complementos",
+}
+
+const EMPTY_PRODUCT_FORM: ProductFormState = {
+  isEditing: false,
+  slug: "",
+  title: "",
+  category: "castillos-toboganes",
+  collectionName: "Línea Dreamy Pastel",
+  price: "S/ 450",
+  dimensions: "4m × 4m × 3m",
+  cardDimensionTag: "4m × 4m",
+  rentalDurationTag: "5 hrs",
+  subtitle: "",
+  description: "",
+  ages: "Niños (hasta 8 años)",
+  extraHour: "S/ 70",
+  isNew: true,
+  bulletsText:
+    "5 horas de alquiler con personal de apoyo incluido\nIncluye montaje, desmontaje y desinfección completa\nMaterial de alta resistencia y costuras reforzadas",
+  imagePath: "",
+  imageFile: null,
+  imagePreviewUrl: "",
 }
 
 async function convertFileToWebp(file: File): Promise<File> {
@@ -77,6 +141,7 @@ export function AdminDashboard() {
   const [activeUsername, setActiveUsername] = useState("admin")
   const [storageMode, setStorageMode] = useState<"mysql" | "local">("local")
   const [mysqlConfigured, setMysqlConfigured] = useState(false)
+  const [activeModule, setActiveModule] = useState<AdminMainModule>("images")
 
   // Login form state
   const [loginUser, setLoginUser] = useState("")
@@ -93,6 +158,33 @@ export function AdminDashboard() {
   )
   const [searchQuery, setSearchQuery] = useState("")
   const [busySlotKey, setBusySlotKey] = useState<string | null>(null)
+
+  // Product catalog state
+  const [products, setProducts] = useState<InflatablePackage[]>([])
+  const [deletedBaseProducts, setDeletedBaseProducts] = useState<
+    InflatablePackage[]
+  >([])
+  const [customSlugs, setCustomSlugs] = useState<string[]>([])
+  const [modifiedSlugs, setModifiedSlugs] = useState<string[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(false)
+  const [activeProdCategory, setActiveProdCategory] = useState<
+    ProductCategorySlug | "all"
+  >("all")
+  const [prodSearchQuery, setProdSearchQuery] = useState("")
+  const [busyProductSlug, setBusyProductSlug] = useState<string | null>(null)
+
+  // Product Create/Edit Modal state
+  const [productModalOpen, setProductModalOpen] = useState(false)
+  const [productForm, setProductForm] =
+    useState<ProductFormState>(EMPTY_PRODUCT_FORM)
+  const [productSaving, setProductSaving] = useState(false)
+  const [productFormError, setProductFormError] = useState("")
+
+  // Delete confirmation modal state
+  const [productToDelete, setProductToDelete] =
+    useState<InflatablePackage | null>(null)
+
+  // Toast notification
   const [toastMessage, setToastMessage] = useState<{
     type: "ok" | "err"
     text: string
@@ -120,9 +212,7 @@ export function AdminDashboard() {
     try {
       const res = await fetch("/api/admin/images", { cache: "no-store" })
       if (!res.ok) {
-        if (res.status === 401) {
-          setAuthenticated(false)
-        }
+        if (res.status === 401) setAuthenticated(false)
         return
       }
       const data = (await res.json()) as {
@@ -135,6 +225,31 @@ export function AdminDashboard() {
       showToast("err", "No se pudo cargar el listado de imágenes.")
     } finally {
       setLoadingSlots(false)
+    }
+  }, [showToast])
+
+  const fetchProducts = useCallback(async () => {
+    setLoadingProducts(true)
+    try {
+      const res = await fetch("/api/admin/products", { cache: "no-store" })
+      if (!res.ok) {
+        if (res.status === 401) setAuthenticated(false)
+        return
+      }
+      const data = (await res.json()) as {
+        products: InflatablePackage[]
+        deletedBaseProducts: InflatablePackage[]
+        customSlugs: string[]
+        modifiedSlugs: string[]
+      }
+      setProducts(data.products)
+      setDeletedBaseProducts(data.deletedBaseProducts ?? [])
+      setCustomSlugs(data.customSlugs ?? [])
+      setModifiedSlugs(data.modifiedSlugs ?? [])
+    } catch {
+      showToast("err", "No se pudo cargar el catálogo de productos.")
+    } finally {
+      setLoadingProducts(false)
     }
   }, [showToast])
 
@@ -158,7 +273,7 @@ export function AdminDashboard() {
         setStorageMode(data.storageMode)
         setMysqlConfigured(data.mysqlConfigured)
         if (data.authenticated) {
-          await fetchSlots()
+          await Promise.all([fetchSlots(), fetchProducts()])
         }
       } catch {
         // Ignore
@@ -169,7 +284,7 @@ export function AdminDashboard() {
     return () => {
       mounted = false
     }
-  }, [fetchSlots])
+  }, [fetchSlots, fetchProducts])
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -200,7 +315,7 @@ export function AdminDashboard() {
       setNewUsername(data.username || loginUser)
       if (data.storageMode) setStorageMode(data.storageMode)
       setLoginPass("")
-      await fetchSlots()
+      await Promise.all([fetchSlots(), fetchProducts()])
     } catch {
       setLoginError("No se pudo conectar con el servidor.")
     } finally {
@@ -216,6 +331,7 @@ export function AdminDashboard() {
     })
     setAuthenticated(false)
     setSlots([])
+    setProducts([])
   }
 
   const handleUploadImage = async (slot: EnrichedSlot, rawFile: File) => {
@@ -257,7 +373,9 @@ export function AdminDashboard() {
         )
       )
       window.dispatchEvent(new CustomEvent("da-refresh-image-overrides"))
-      showToast("ok", `Imagen actualizada: ${slot.title}`)
+      window.dispatchEvent(new CustomEvent("da-refresh-catalog"))
+      await fetchProducts()
+      showToast("ok", `Imagen actualizada en formato Webp: ${slot.title}`)
     } catch {
       showToast("err", "Error de red al subir la imagen.")
     } finally {
@@ -295,11 +413,179 @@ export function AdminDashboard() {
         )
       )
       window.dispatchEvent(new CustomEvent("da-refresh-image-overrides"))
+      window.dispatchEvent(new CustomEvent("da-refresh-catalog"))
+      await fetchProducts()
       showToast("ok", `Imagen restaurada a su versión original: ${slot.title}`)
     } catch {
       showToast("err", "Error de red al restaurar la imagen.")
     } finally {
       setBusySlotKey(null)
+    }
+  }
+
+  // Open Modal to Create New Product
+  const openCreateProductModal = () => {
+    setProductFormError("")
+    setProductForm({ ...EMPTY_PRODUCT_FORM })
+    setProductModalOpen(true)
+  }
+
+  // Open Modal to Edit/Modify Existing Product
+  const openEditProductModal = (pkg: InflatablePackage) => {
+    setProductFormError("")
+    const extraHourSpec = pkg.tableSpecs.find(
+      (r) => r.label.toLowerCase() === "hora adicional"
+    )?.value
+    setProductForm({
+      isEditing: true,
+      slug: pkg.slug,
+      title: pkg.title,
+      category: pkg.category,
+      collectionName: pkg.collectionName,
+      price: pkg.price,
+      dimensions: pkg.specs.minSpace || pkg.cardTags[0] || "4m × 4m × 3m",
+      cardDimensionTag: pkg.cardTags[0] || pkg.specs.minSpace,
+      rentalDurationTag: pkg.cardTags[1] || "5 hrs",
+      subtitle: pkg.subtitle,
+      description: pkg.fullDescription || pkg.shortDescription,
+      ages: pkg.specs.recommendedAges || "Todas las edades",
+      extraHour: extraHourSpec || "",
+      isNew: Boolean(pkg.isNew),
+      bulletsText: pkg.featureBullets.map((b) => b.text).join("\n"),
+      imagePath: pkg.image,
+      imageFile: null,
+      imagePreviewUrl: pkg.image,
+    })
+    setProductModalOpen(true)
+  }
+
+  const handleSaveProduct = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setProductFormError("")
+
+    if (!productForm.title.trim()) {
+      setProductFormError("Ingresa el nombre del producto.")
+      return
+    }
+    if (!productForm.price.trim()) {
+      setProductFormError("Ingresa el precio de alquiler.")
+      return
+    }
+    if (!productForm.dimensions.trim()) {
+      setProductFormError("Ingresa las medidas del producto.")
+      return
+    }
+    if (!productForm.isEditing && !productForm.imageFile && !productForm.imagePath) {
+      setProductFormError(
+        "Selecciona una imagen para el nuevo producto (se guardará en formato Webp)."
+      )
+      return
+    }
+
+    setProductSaving(true)
+    try {
+      const formData = new FormData()
+      if (productForm.slug) formData.append("slug", productForm.slug)
+      formData.append("title", productForm.title.trim())
+      formData.append("category", productForm.category)
+      formData.append("collectionName", productForm.collectionName.trim())
+      formData.append("price", productForm.price.trim())
+      formData.append("dimensions", productForm.dimensions.trim())
+      formData.append("cardDimensionTag", productForm.cardDimensionTag.trim())
+      formData.append("rentalDurationTag", productForm.rentalDurationTag.trim())
+      formData.append("subtitle", productForm.subtitle.trim())
+      formData.append("description", productForm.description.trim())
+      formData.append("ages", productForm.ages.trim())
+      formData.append("extraHour", productForm.extraHour.trim())
+      formData.append("isNew", productForm.isNew ? "true" : "false")
+      formData.append("bulletsText", productForm.bulletsText.trim())
+      if (productForm.imagePath) {
+        formData.append("imagePath", productForm.imagePath)
+      }
+
+      if (productForm.imageFile) {
+        const webpFile = await convertFileToWebp(productForm.imageFile)
+        formData.append("file", webpFile)
+      }
+
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        body: formData,
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        product?: InflatablePackage
+        error?: string
+      }
+
+      if (!res.ok || !data.ok) {
+        setProductFormError(
+          data.error || "No se pudo guardar el producto."
+        )
+        return
+      }
+
+      setProductModalOpen(false)
+      await Promise.all([fetchProducts(), fetchSlots()])
+      window.dispatchEvent(new CustomEvent("da-refresh-catalog"))
+      showToast(
+        "ok",
+        productForm.isEditing
+          ? `Producto modificado: ${productForm.title}`
+          : `Nuevo producto agregado al catálogo: ${productForm.title}`
+      )
+    } catch {
+      setProductFormError("Error de red al guardar el producto.")
+    } finally {
+      setProductSaving(false)
+    }
+  }
+
+  const handleConfirmDeleteProduct = async () => {
+    if (!productToDelete) return
+    const target = productToDelete
+    setBusyProductSlug(target.slug)
+    setProductToDelete(null)
+
+    try {
+      const res = await fetch(
+        `/api/admin/products?slug=${encodeURIComponent(target.slug)}&mode=delete`,
+        { method: "DELETE" }
+      )
+      const data = (await res.json()) as { ok?: boolean; error?: string }
+      if (!res.ok || !data.ok) {
+        showToast("err", data.error || "No se pudo eliminar el producto.")
+        return
+      }
+      await fetchProducts()
+      window.dispatchEvent(new CustomEvent("da-refresh-catalog"))
+      showToast("ok", `Producto eliminado del catálogo: ${target.title}`)
+    } catch {
+      showToast("err", "Error de red al eliminar el producto.")
+    } finally {
+      setBusyProductSlug(null)
+    }
+  }
+
+  const handleRestoreBaseProduct = async (slug: string, title: string) => {
+    setBusyProductSlug(slug)
+    try {
+      const res = await fetch(
+        `/api/admin/products?slug=${encodeURIComponent(slug)}&mode=restore`,
+        { method: "DELETE" }
+      )
+      const data = (await res.json()) as { ok?: boolean; error?: string }
+      if (!res.ok || !data.ok) {
+        showToast("err", data.error || "No se pudo restaurar el producto.")
+        return
+      }
+      await fetchProducts()
+      window.dispatchEvent(new CustomEvent("da-refresh-catalog"))
+      showToast("ok", `Producto restaurado a su versión original: ${title}`)
+    } catch {
+      showToast("err", "Error de red al restaurar el producto.")
+    } finally {
+      setBusyProductSlug(null)
     }
   }
 
@@ -366,6 +652,21 @@ export function AdminDashboard() {
     })
   }, [slots, activeSection, searchQuery])
 
+  const filteredProducts = useMemo(() => {
+    const q = prodSearchQuery.trim().toLowerCase()
+    return products.filter((p) => {
+      if (activeProdCategory !== "all" && p.category !== activeProdCategory)
+        return false
+      if (!q) return true
+      return (
+        p.title.toLowerCase().includes(q) ||
+        p.subtitle.toLowerCase().includes(q) ||
+        p.collectionName.toLowerCase().includes(q) ||
+        p.price.toLowerCase().includes(q)
+      )
+    })
+  }, [products, activeProdCategory, prodSearchQuery])
+
   const overriddenCount = useMemo(
     () => slots.filter((s) => s.isOverridden).length,
     [slots]
@@ -399,8 +700,8 @@ export function AdminDashboard() {
               Panel Administrador
             </h1>
             <p className="mt-1.5 text-sm text-[#6C7686]">
-              Ingresa tus credenciales para gestionar las imágenes de Diamante
-              Azul.
+              Ingresa tus credenciales para gestionar las imágenes y productos
+              de Diamante Azul.
             </p>
           </div>
 
@@ -505,7 +806,7 @@ export function AdminDashboard() {
           <div>
             <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
               <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold bg-[#EBF5FA] text-[#2B8EAD]">
-                Panel de Imágenes · Diamante Azul
+                Panel Administrador · Diamante Azul
               </span>
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-medium ${
@@ -521,14 +822,14 @@ export function AdminDashboard() {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[#2D3440] tracking-tight">
-              Gestor de Imágenes del Sitio Web
+              Administración de Imágenes y Productos
             </h1>
             <p className="text-sm text-[#6C7686] mt-0.5">
               Sesión iniciada como <strong>{activeUsername}</strong> ·{" "}
-              {slots.length} imágenes registradas ({overriddenCount}{" "}
-              {overriddenCount === 1 ? "modificada" : "modificadas"}). Toda foto
-              que subas se optimiza automáticamente a formato{" "}
-              <strong>.webp</strong>.
+              <strong>{products.length} productos activos</strong> en catálogo y{" "}
+              <strong>{slots.length} imágenes</strong> del sitio (
+              {overriddenCount}{" "}
+              {overriddenCount === 1 ? "modificada" : "modificadas"}).
             </p>
           </div>
 
@@ -553,161 +854,896 @@ export function AdminDashboard() {
             </button>
           </div>
         </div>
+
+        {/* Main Module Switcher Bar: 1. Imágenes del Sitio | 2. Productos del Catálogo */}
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-8 pb-4 flex flex-wrap items-center justify-between gap-3">
+          <div
+            className="inline-flex p-1.5 rounded-full bg-[#EEF4F8] border border-[#DCE7F0]"
+            role="tablist"
+            aria-label="Módulos del panel administrador"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeModule === "images"}
+              onClick={() => setActiveModule("images")}
+              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeModule === "images"
+                  ? "bg-[#2D3440] text-white shadow-sm"
+                  : "text-[#5A6577] hover:text-[#2D3440]"
+              }`}
+            >
+              🖼️ Imágenes del Sitio ({slots.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeModule === "products"}
+              onClick={() => setActiveModule("products")}
+              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeModule === "products"
+                  ? "bg-[#2D3440] text-white shadow-sm"
+                  : "text-[#5A6577] hover:text-[#2D3440]"
+              }`}
+            >
+              🎪 Productos del Catálogo ({products.length})
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveModule("products")
+              openCreateProductModal()
+            }}
+            className="px-5 py-2.5 rounded-full bg-[#2B8EAD] hover:bg-[#237792] text-white text-xs sm:text-sm font-semibold shadow-sm transition cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <span className="text-base leading-none">+</span>
+            <span>Agregar nuevo producto</span>
+          </button>
+        </div>
       </div>
 
-      {/* Filters & Search Toolbar */}
-      <div className="max-w-[1380px] mx-auto px-5 sm:px-8 pt-7">
-        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2ECF2] shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div
-            className="flex flex-wrap gap-2"
-            role="tablist"
-            aria-label="Filtrar imágenes por sección"
-          >
-            {ADMIN_IMAGE_SECTIONS.map((sec) => {
-              const isActive = activeSection === sec.id
-              const count =
-                sec.id === "all"
-                  ? slots.length
-                  : slots.filter((s) => s.section === sec.id).length
-              return (
-                <button
-                  key={sec.id}
-                  type="button"
-                  onClick={() => setActiveSection(sec.id)}
-                  className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition cursor-pointer ${
-                    isActive
-                      ? "bg-[#2D3440] text-white font-semibold shadow-sm"
-                      : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
-                  }`}
-                >
-                  {sec.label} ({count})
-                </button>
-              )
-            })}
+      {/* ====================================================================
+          MODULE 1: GESTOR DE IMÁGENES DEL SITIO WEB
+          ==================================================================== */}
+      {activeModule === "images" && (
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-8 pt-7">
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2ECF2] shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div
+              className="flex flex-wrap gap-2"
+              role="tablist"
+              aria-label="Filtrar imágenes por sección"
+            >
+              {ADMIN_IMAGE_SECTIONS.map((sec) => {
+                const isActive = activeSection === sec.id
+                const count =
+                  sec.id === "all"
+                    ? slots.length
+                    : slots.filter((s) => s.section === sec.id).length
+                return (
+                  <button
+                    key={sec.id}
+                    type="button"
+                    onClick={() => setActiveSection(sec.id)}
+                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition cursor-pointer ${
+                      isActive
+                        ? "bg-[#2D3440] text-white font-semibold shadow-sm"
+                        : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
+                    }`}
+                  >
+                    {sec.label} ({count})
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="relative w-full lg:w-72">
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar imagen o sección..."
+                aria-label="Buscar imagen por nombre"
+                className="w-full h-10 pl-4 pr-9 rounded-full border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440] focus:outline-none focus:border-[#5CC2DE] focus:bg-white"
+              />
+            </div>
           </div>
 
-          <div className="relative w-full lg:w-72">
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar producto o sección..."
-              aria-label="Buscar imagen por nombre"
-              className="w-full h-10 pl-4 pr-9 rounded-full border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440] focus:outline-none focus:border-[#5CC2DE] focus:bg-white"
-            />
-          </div>
-        </div>
-
-        {/* Grid of Editable Image Cards */}
-        {loadingSlots ? (
-          <div className="py-20 text-center text-[#6C7686] text-base">
-            Cargando catálogo de imágenes...
-          </div>
-        ) : filteredSlots.length === 0 ? (
-          <div className="py-16 text-center bg-white rounded-3xl mt-6 border border-[#E2ECF2] p-8">
-            <p className="text-base font-medium text-[#2D3440]">
-              No se encontraron imágenes con ese filtro.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredSlots.map((slot) => {
-              const isBusy = busySlotKey === slot.key
-              const inputId = `upload-input-${slot.key}`
-              return (
-                <article
-                  key={slot.key}
-                  className="bg-white rounded-[24px] border border-[#E2ECF2] overflow-hidden shadow-[0_6px_20px_rgba(45,52,64,0.04)] flex flex-col justify-between transition hover:shadow-[0_12px_28px_rgba(45,52,64,0.08)]"
-                >
-                  <div>
-                    {/* Image Preview Box */}
-                    <div className="relative aspect-[4/3] w-full bg-[#EEF4F8] overflow-hidden border-b border-[#EBF1F5]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={slot.previewUrl}
-                        alt={slot.title}
-                        loading="lazy"
-                        className="w-full h-full object-contain p-2"
-                      />
-                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/90 text-[#2D3440] backdrop-blur-sm shadow-sm">
-                          {slot.sectionLabel}
-                        </span>
-                        {slot.isOverridden && (
-                          <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#2B8EAD] text-white shadow-sm">
-                            Modificada
+          {loadingSlots ? (
+            <div className="py-20 text-center text-[#6C7686] text-base">
+              Cargando catálogo de imágenes...
+            </div>
+          ) : filteredSlots.length === 0 ? (
+            <div className="py-16 text-center bg-white rounded-3xl mt-6 border border-[#E2ECF2] p-8">
+              <p className="text-base font-medium text-[#2D3440]">
+                No se encontraron imágenes con ese filtro.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {filteredSlots.map((slot) => {
+                const isBusy = busySlotKey === slot.key
+                const inputId = `upload-input-${slot.key}`
+                return (
+                  <article
+                    key={slot.key}
+                    className="bg-white rounded-[24px] border border-[#E2ECF2] overflow-hidden shadow-[0_6px_20px_rgba(45,52,64,0.04)] flex flex-col justify-between transition hover:shadow-[0_12px_28px_rgba(45,52,64,0.08)]"
+                  >
+                    <div>
+                      <div className="relative aspect-[4/3] w-full bg-[#EEF4F8] overflow-hidden border-b border-[#EBF1F5]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={slot.previewUrl}
+                          alt={slot.title}
+                          loading="lazy"
+                          className="w-full h-full object-contain p-2"
+                        />
+                        <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/90 text-[#2D3440] backdrop-blur-sm shadow-sm">
+                            {slot.sectionLabel}
                           </span>
-                        )}
+                          {slot.isOverridden && (
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#2B8EAD] text-white shadow-sm">
+                              Modificada
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-4">
+                        <h2 className="text-base font-semibold text-[#2D3440] leading-snug">
+                          {slot.title}
+                        </h2>
+                        <p className="text-xs text-[#6C7686] mt-1 line-clamp-2">
+                          {slot.subtitle}
+                        </p>
+                        <div className="mt-3 pt-2.5 border-t border-[#F0F4F8] text-[11.5px] text-[#5A6577] space-y-1">
+                          <p>
+                            <strong>Medida sugerida:</strong>{" "}
+                            {slot.recommendedSize}
+                          </p>
+                          <p className="flex items-center gap-1.5">
+                            <strong>Formato:</strong>{" "}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#EBF5FA] text-[#2B8EAD] font-bold tracking-wide">
+                              {slot.recommendedFormat || "Webp"}
+                            </span>
+                          </p>
+                          <p
+                            className="truncate text-[11px] text-[#7A8699]"
+                            title={slot.path}
+                          >
+                            <strong>Ruta:</strong> {slot.path}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Slot Metadata */}
-                    <div className="p-4">
-                      <h2 className="text-base font-semibold text-[#2D3440] leading-snug">
-                        {slot.title}
-                      </h2>
-                      <p className="text-xs text-[#6C7686] mt-1 line-clamp-2">
-                        {slot.subtitle}
-                      </p>
-                      <div className="mt-3 pt-2.5 border-t border-[#F0F4F8] text-[11px] text-[#7A8699] space-y-0.5">
-                        <p>
-                          <strong>Medida sugerida:</strong>{" "}
-                          {slot.recommendedSize}
+                    <div className="px-4 pb-4 pt-1 flex items-center gap-2">
+                      <input
+                        id={inputId}
+                        type="file"
+                        accept="image/webp,image/jpeg,image/png,image/avif"
+                        className="sr-only"
+                        disabled={isBusy}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          e.target.value = ""
+                          if (file) {
+                            handleUploadImage(slot, file)
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={inputId}
+                        className={`flex-1 h-10 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                          isBusy
+                            ? "bg-[#CFD9E2] text-[#5A6577] pointer-events-none"
+                            : "bg-[#2D3440] hover:bg-[#5CC2DE] text-white shadow-sm"
+                        }`}
+                      >
+                        {isBusy ? "Subiendo..." : "Cambiar imagen"}
+                      </label>
+
+                      {slot.isOverridden && (
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() => handleRestoreImage(slot)}
+                          title="Restaurar imagen original"
+                          className="h-10 px-3.5 rounded-full border border-[#D7E3EC] bg-[#F7FAFC] hover:bg-[#FFF1F3] hover:border-[#F8C6D0] hover:text-[#B4233C] text-[#5A6577] text-xs font-semibold transition cursor-pointer"
+                        >
+                          Restaurar
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODULE 2: GESTOR DE PRODUCTOS DEL CATÁLOGO (VER, CREAR, EDITAR, ELIMINAR)
+          ==================================================================== */}
+      {activeModule === "products" && (
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-8 pt-7">
+          {/* Products Filter & Search Bar */}
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2ECF2] shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div
+              className="flex flex-wrap gap-2"
+              role="tablist"
+              aria-label="Filtrar productos por categoría"
+            >
+              <button
+                type="button"
+                onClick={() => setActiveProdCategory("all")}
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition cursor-pointer ${
+                  activeProdCategory === "all"
+                    ? "bg-[#2D3440] text-white font-semibold shadow-sm"
+                    : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
+                }`}
+              >
+                Todos ({products.length})
+              </button>
+              {PRODUCT_CATEGORIES.map((cat) => {
+                const isActive = activeProdCategory === cat.slug
+                const count = products.filter(
+                  (p) => p.category === cat.slug
+                ).length
+                return (
+                  <button
+                    key={cat.slug}
+                    type="button"
+                    onClick={() => setActiveProdCategory(cat.slug)}
+                    className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition cursor-pointer ${
+                      isActive
+                        ? "bg-[#2D3440] text-white font-semibold shadow-sm"
+                        : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
+                    }`}
+                  >
+                    {cat.label} ({count})
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <input
+                type="search"
+                value={prodSearchQuery}
+                onChange={(e) => setProdSearchQuery(e.target.value)}
+                placeholder="Buscar producto por nombre..."
+                aria-label="Buscar producto"
+                className="w-full lg:w-64 h-10 pl-4 pr-4 rounded-full border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440] focus:outline-none focus:border-[#5CC2DE] focus:bg-white"
+              />
+            </div>
+          </div>
+
+          {/* Active Products Grid */}
+          {loadingProducts ? (
+            <div className="py-20 text-center text-[#6C7686] text-base">
+              Cargando productos del catálogo...
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="py-16 text-center bg-white rounded-3xl mt-6 border border-[#E2ECF2] p-8">
+              <p className="text-base font-medium text-[#2D3440]">
+                No se encontraron productos en esta categoría.
+              </p>
+              <button
+                type="button"
+                onClick={openCreateProductModal}
+                className="mt-4 px-5 py-2.5 rounded-full bg-[#2B8EAD] text-white text-xs font-semibold cursor-pointer"
+              >
+                + Agregar nuevo producto
+              </button>
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {filteredProducts.map((pkg) => {
+                const isBusy = busyProductSlug === pkg.slug
+                const isCustom = customSlugs.includes(pkg.slug)
+                const isModified = modifiedSlugs.includes(pkg.slug)
+                return (
+                  <article
+                    key={pkg.slug}
+                    className="bg-white rounded-[24px] border border-[#E2ECF2] overflow-hidden shadow-[0_6px_20px_rgba(45,52,64,0.04)] flex flex-col justify-between transition hover:shadow-[0_12px_28px_rgba(45,52,64,0.08)]"
+                  >
+                    <div>
+                      <div className="relative aspect-square w-full bg-[#EEF4F8] overflow-hidden border-b border-[#EBF1F5]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pkg.image}
+                          alt={pkg.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/92 text-[#2D3440] backdrop-blur-sm shadow-sm">
+                            {pkg.categoryName}
+                          </span>
+                          {isCustom ? (
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#1D7A46] text-white shadow-sm">
+                              Nuevo Creado
+                            </span>
+                          ) : isModified ? (
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#2B8EAD] text-white shadow-sm">
+                              Editado
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <h2 className="text-base font-semibold text-[#2D3440] leading-snug">
+                            {pkg.title}
+                          </h2>
+                          <span className="shrink-0 px-2.5 py-0.5 rounded-full bg-[#F2F7FA] text-[#2D3440] text-xs font-bold">
+                            {pkg.price}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#6C7686] mt-1 line-clamp-2">
+                          {pkg.subtitle}
                         </p>
-                        <p className="truncate" title={slot.path}>
-                          <strong>Ruta:</strong> {slot.path}
-                        </p>
+
+                        <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+                          <span className="px-2.5 py-1 rounded-lg bg-[#F5F8FA] text-[#5A6577] font-medium">
+                            <strong>Medidas:</strong> {pkg.cardTags[0]}
+                          </span>
+                          {pkg.cardTags[1] && (
+                            <span className="px-2.5 py-1 rounded-lg bg-[#F5F8FA] text-[#5A6577] font-medium">
+                              <strong>Alquiler:</strong> {pkg.cardTags[1]}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-3 pt-2.5 border-t border-[#F0F4F8] text-[11.5px] text-[#5A6577] space-y-1">
+                          <p>
+                            <strong>Medida sugerida:</strong> 1000 × 1000 px
+                            (1:1)
+                          </p>
+                          <p className="flex items-center gap-1.5">
+                            <strong>Formato:</strong>{" "}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#EBF5FA] text-[#2B8EAD] font-bold tracking-wide">
+                              Webp
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     </div>
+
+                    <div className="px-4 pb-4 pt-1 flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => openEditProductModal(pkg)}
+                        className="flex-1 h-10 rounded-full bg-[#2D3440] hover:bg-[#5CC2DE] text-white text-xs font-semibold transition cursor-pointer shadow-sm"
+                      >
+                        ✏️ Editar / Modificar
+                      </button>
+
+                      {isModified && !isCustom && (
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          onClick={() =>
+                            handleRestoreBaseProduct(pkg.slug, pkg.title)
+                          }
+                          title="Restaurar datos originales del producto"
+                          className="h-10 px-3 rounded-full border border-[#D7E3EC] bg-[#F7FAFC] hover:bg-[#EBF5FA] text-[#5A6577] text-xs font-semibold transition cursor-pointer"
+                        >
+                          ↺
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() => setProductToDelete(pkg)}
+                        title="Eliminar producto del catálogo"
+                        className="h-10 px-3.5 rounded-full border border-[#F3CCD3] bg-[#FFF5F7] hover:bg-[#FFE6EB] text-[#B4233C] text-xs font-semibold transition cursor-pointer"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Deleted Base Products Recovery Section */}
+          {deletedBaseProducts.length > 0 && (
+            <section className="mt-10 bg-white rounded-3xl p-6 border border-[#E2ECF2]">
+              <h3 className="text-base font-semibold text-[#2D3440]">
+                Productos del catálogo base ocultos / eliminados (
+                {deletedBaseProducts.length})
+              </h3>
+              <p className="text-xs text-[#6C7686] mt-0.5 mb-4">
+                Si eliminaste un producto original por error, puedes restaurarlo
+                al catálogo con un clic:
+              </p>
+              <div className="flex flex-wrap gap-2.5">
+                {deletedBaseProducts.map((delPkg) => (
+                  <div
+                    key={delPkg.slug}
+                    className="inline-flex items-center gap-2.5 pl-3.5 pr-2 py-1.5 rounded-full bg-[#F5F9FC] border border-[#D7E3EC] text-xs"
+                  >
+                    <span className="font-medium text-[#2D3440]">
+                      {delPkg.title}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRestoreBaseProduct(delPkg.slug, delPkg.title)
+                      }
+                      className="px-3 py-1 rounded-full bg-[#2B8EAD] text-white font-semibold hover:bg-[#22748F] cursor-pointer"
+                    >
+                      Restaurar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODAL: CREAR NUEVO PRODUCTO / EDITAR PRODUCTO EXISTENTE
+          ==================================================================== */}
+      {productModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="da-prod-modal-title"
+          className="fixed inset-0 z-50 bg-[#19202A]/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setProductModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-[720px] max-h-[90dvh] overflow-y-auto bg-white rounded-[28px] p-6 sm:p-8 shadow-2xl border border-[#E2ECF2]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-4 pb-4 border-b border-[#EBF1F5]">
+              <div>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EBF5FA] text-[#2B8EAD] mb-1">
+                  {productForm.isEditing
+                    ? "Modificar Producto Existente"
+                    : "Nuevo Producto del Catálogo"}
+                </span>
+                <h2
+                  id="da-prod-modal-title"
+                  className="text-xl sm:text-2xl font-semibold text-[#2D3440]"
+                >
+                  {productForm.isEditing
+                    ? `Editar: ${productForm.title}`
+                    : "Agregar Nuevo Producto"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProductModalOpen(false)}
+                aria-label="Cerrar ventana"
+                className="w-9 h-9 rounded-full bg-[#F0F5F9] text-[#2D3440] text-xl leading-none flex items-center justify-center hover:bg-[#E2ECF2] cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+
+            {productFormError && (
+              <div
+                role="alert"
+                className="mt-4 rounded-xl bg-[#FFF1F3] border border-[#F8C6D0] px-4 py-3 text-xs sm:text-sm text-[#B4233C] font-medium"
+              >
+                {productFormError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProduct} className="mt-5 space-y-5">
+              {/* 1. Imagen del Producto con énfasis en Medida sugerida y Formato: Webp */}
+              <div className="rounded-2xl bg-[#F7FAFC] border border-[#DCE7F0] p-4 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-28 h-28 rounded-2xl bg-white border border-[#E2ECF2] overflow-hidden shrink-0 flex items-center justify-center">
+                  {productForm.imagePreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={productForm.imagePreviewUrl}
+                      alt="Vista previa"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-[#8A96A8] text-center px-2">
+                      Sin imagen aún
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-sm font-semibold text-[#2D3440]">
+                    Fotografía del Producto
+                  </h3>
+                  <div className="mt-1 text-xs text-[#5A6577] space-y-1">
+                    <p>
+                      <strong>Medida sugerida:</strong> 1000 × 1000 px (1:1
+                      cuadrado)
+                    </p>
+                    <p className="flex items-center justify-center sm:justify-start gap-1.5">
+                      <strong>Formato:</strong>{" "}
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#EBF5FA] text-[#2B8EAD] font-bold">
+                        Webp
+                      </span>
+                      <span className="text-[11px] text-[#7A8699]">
+                        (conversión automática a Webp al subir)
+                      </span>
+                    </p>
                   </div>
 
-                  {/* Card Actions */}
-                  <div className="px-4 pb-4 pt-1 flex items-center gap-2">
+                  <div className="mt-3">
                     <input
-                      id={inputId}
+                      id="prod-modal-file"
                       type="file"
                       accept="image/webp,image/jpeg,image/png,image/avif"
                       className="sr-only"
-                      disabled={isBusy}
                       onChange={(e) => {
                         const file = e.target.files?.[0]
-                        e.target.value = ""
                         if (file) {
-                          handleUploadImage(slot, file)
+                          const preview = URL.createObjectURL(file)
+                          setProductForm((prev) => ({
+                            ...prev,
+                            imageFile: file,
+                            imagePreviewUrl: preview,
+                          }))
                         }
                       }}
                     />
                     <label
-                      htmlFor={inputId}
-                      className={`flex-1 h-10 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                        isBusy
-                          ? "bg-[#CFD9E2] text-[#5A6577] pointer-events-none"
-                          : "bg-[#2D3440] hover:bg-[#5CC2DE] text-white shadow-sm"
-                      }`}
+                      htmlFor="prod-modal-file"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#2D3440] hover:bg-[#5CC2DE] text-white text-xs font-semibold transition cursor-pointer"
                     >
-                      {isBusy ? "Subiendo..." : "Cambiar imagen"}
+                      📁 Seleccionar imagen (.webp)
                     </label>
-
-                    {slot.isOverridden && (
-                      <button
-                        type="button"
-                        disabled={isBusy}
-                        onClick={() => handleRestoreImage(slot)}
-                        title="Restaurar imagen original"
-                        className="h-10 px-3.5 rounded-full border border-[#D7E3EC] bg-[#F7FAFC] hover:bg-[#FFF1F3] hover:border-[#F8C6D0] hover:text-[#B4233C] text-[#5A6577] text-xs font-semibold transition cursor-pointer"
-                      >
-                        Restaurar
-                      </button>
-                    )}
                   </div>
-                </article>
-              )
-            })}
-          </div>
-        )}
-      </div>
+                </div>
+              </div>
 
-      {/* Security Modal: Change Username / Password */}
+              {/* 2. Nombre, Categoría y Línea/Colección */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Nombre del Producto *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.title}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: Castillo Pastel Encantado"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Categoría del Catálogo *
+                  </label>
+                  <select
+                    value={productForm.category}
+                    onChange={(e) => {
+                      const nextCat = e.target.value as ProductCategorySlug
+                      setProductForm((prev) => ({
+                        ...prev,
+                        category: nextCat,
+                        collectionName:
+                          DEFAULT_COLLECTION_BY_CATEGORY[nextCat] ||
+                          prev.collectionName,
+                      }))
+                    }}
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  >
+                    {PRODUCT_CATEGORIES.map((cat) => (
+                      <option key={cat.slug} value={cat.slug}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Línea o Colección
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.collectionName}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        collectionName: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: Línea Dreamy Pastel / White Trend"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Precio, Medidas y Tiempo de Alquiler */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Precio *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.price}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: S/ 450"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Medidas completas *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.dimensions}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      const shortTag = val
+                        .split("×")
+                        .slice(0, 2)
+                        .map((s) => s.trim())
+                        .join(" × ")
+                      setProductForm((prev) => ({
+                        ...prev,
+                        dimensions: val,
+                        cardDimensionTag: shortTag || val,
+                      }))
+                    }}
+                    placeholder="Ej: 5m × 4m × 3.5m"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Medida en tarjeta
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.cardDimensionTag}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        cardDimensionTag: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: 5m × 4m"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Tiempo de alquiler *
+                  </label>
+                  <select
+                    value={productForm.rentalDurationTag}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        rentalDurationTag: e.target.value,
+                      }))
+                    }
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  >
+                    <option value="5 hrs">5 hrs (5 Horas)</option>
+                    <option value="3 hrs">3 hrs (3 Horas)</option>
+                    <option value="2 hrs">2 hrs (2 Horas)</option>
+                    <option value="Por evento">Por evento</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 4. Edad recomendada, Hora adicional y Etiqueta NUEVO */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-center">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Edad / Público
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.ages}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        ages: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: Niños (hasta 8 años)"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                    Costo hora adicional
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.extraHour}
+                    onChange={(e) =>
+                      setProductForm((prev) => ({
+                        ...prev,
+                        extraHour: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: S/ 70 (opcional)"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <label className="inline-flex items-center gap-2.5 text-sm font-medium text-[#2D3440] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={productForm.isNew}
+                      onChange={(e) =>
+                        setProductForm((prev) => ({
+                          ...prev,
+                          isNew: e.target.checked,
+                        }))
+                      }
+                      className="w-4 h-4 rounded accent-[#2B8EAD]"
+                    />
+                    <span>Mostrar insignia «★ NUEVO»</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* 5. Subtítulo corto (para tarjeta) y Descripción completa */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                  Subtítulo corto (se muestra en la tarjeta del catálogo) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={productForm.subtitle}
+                  onChange={(e) =>
+                    setProductForm((prev) => ({
+                      ...prev,
+                      subtitle: e.target.value,
+                    }))
+                  }
+                  placeholder="Ej: Castillo pastel con tobogán, área de salto y piscina de pelotas"
+                  className="w-full h-11 px-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                  Descripción completa (se muestra dentro de la página del
+                  producto) *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={productForm.description}
+                  onChange={(e) =>
+                    setProductForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Describe los atractivos principales del inflable o servicio..."
+                  className="w-full p-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#5A6577] mb-1">
+                  Beneficios / Puntos destacados (uno por línea)
+                </label>
+                <textarea
+                  rows={3}
+                  value={productForm.bulletsText}
+                  onChange={(e) =>
+                    setProductForm((prev) => ({
+                      ...prev,
+                      bulletsText: e.target.value,
+                    }))
+                  }
+                  placeholder="5 horas de alquiler con personal de apoyo&#10;Incluye montaje, desmontaje y desinfección"
+                  className="w-full p-3.5 rounded-xl border border-[#D7E3EC] bg-[#F9FBFD] text-sm text-[#2D3440]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-[#EBF1F5] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setProductModalOpen(false)}
+                  className="h-11 px-5 rounded-full border border-[#D7E3EC] text-xs sm:text-sm font-semibold text-[#5A6577] hover:bg-[#F2F7FA] cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={productSaving}
+                  className="h-11 px-6 rounded-full bg-[#2D3440] hover:bg-[#5CC2DE] text-white text-xs sm:text-sm font-semibold transition cursor-pointer shadow-md disabled:opacity-60"
+                >
+                  {productSaving
+                    ? "Guardando..."
+                    : productForm.isEditing
+                      ? "Guardar modificaciones"
+                      : "Crear y publicar producto"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODAL DE CONFIRMACIÓN PARA ELIMINAR PRODUCTO
+          ==================================================================== */}
+      {productToDelete && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-[#19202A]/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setProductToDelete(null)}
+        >
+          <div
+            className="w-full max-w-[420px] bg-white rounded-[26px] p-6 sm:p-7 shadow-2xl border border-[#E2ECF2] text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-[#2D3440]">
+              ¿Eliminar «{productToDelete.title}»?
+            </h3>
+            <p className="text-xs text-[#6C7686] mt-2">
+              El producto dejará de mostrarse en el catálogo público del sitio
+              web.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setProductToDelete(null)}
+                className="h-10 px-5 rounded-full border border-[#D7E3EC] text-xs font-semibold text-[#5A6577] hover:bg-[#F2F7FA] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteProduct}
+                className="h-10 px-5 rounded-full bg-[#B4233C] hover:bg-[#961B30] text-white text-xs font-semibold transition cursor-pointer"
+              >
+                Sí, eliminar producto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODAL DE SEGURIDAD: CAMBIAR USUARIO / CONTRASEÑA
+          ==================================================================== */}
       {securityModalOpen && (
         <div
           role="dialog"
