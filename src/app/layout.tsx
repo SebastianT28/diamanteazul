@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Outfit } from "next/font/google"
 import "./globals.css"
+// Avance 3 Final: Catálogo 31 productos, SEO Multi-Ciudad (Lima Moderna y Arequipa), Core Web Vitals y Backend Admin MySQL
 import { SiteHeader } from "@/components/layout/site-header"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { CityProvider } from "@/lib/city-context"
