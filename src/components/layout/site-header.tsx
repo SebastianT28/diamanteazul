@@ -20,7 +20,9 @@ const TICKER_ITEMS = [
 
 export function SiteHeader() {
   const [megaOpen, setMegaOpen] = useState(false)
+  const [megaLoaded, setMegaLoaded] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerLoaded, setDrawerLoaded] = useState(false)
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false)
   const [headerHidden, setHeaderHidden] = useState(false)
   const { city, cityConfig, switchCity } = useCity()
@@ -229,7 +231,10 @@ export function SiteHeader() {
               className="hbr-header__toggle"
               aria-label="Abrir menú"
               aria-expanded={drawerOpen}
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => {
+                setDrawerLoaded(true)
+                setDrawerOpen(true)
+              }}
             >
               <span className="hbr-header__burger" aria-hidden="true">
                 <span />
@@ -244,6 +249,8 @@ export function SiteHeader() {
                 <li
                   id="da-mega-item"
                   className={`amegamenu-item ${megaOpen ? "hbr-sub-open" : ""}`}
+                  onMouseEnter={() => setMegaLoaded(true)}
+                  onFocus={() => setMegaLoaded(true)}
                 >
                   <Link
                     href={catalogAnchorHref}
@@ -257,7 +264,10 @@ export function SiteHeader() {
                     className="hbr-header__submenu-toggle"
                     aria-label="Desplegar catálogo de productos"
                     aria-expanded={megaOpen}
-                    onClick={() => setMegaOpen((prev) => !prev)}
+                    onClick={() => {
+                      setMegaLoaded(true)
+                      setMegaOpen((prev) => !prev)
+                    }}
                   >
                     <svg
                       viewBox="0 0 12 12"
@@ -320,13 +330,17 @@ export function SiteHeader() {
                                     onClick={() => setMegaOpen(false)}
                                   >
                                     <div className="hbr-mega__media">
-                                      <Image
-                                        src={prod.image}
-                                        alt={prod.title}
-                                        width={110}
-                                        height={110}
-                                        className="hbr-mega__img"
-                                      />
+                                      {(megaLoaded || megaOpen) && (
+                                        <Image
+                                          src={prod.image}
+                                          alt={prod.title}
+                                          width={110}
+                                          height={110}
+                                          sizes="110px"
+                                          loading="lazy"
+                                          className="hbr-mega__img"
+                                        />
+                                      )}
                                     </div>
                                     <span className="hbr-mega__name">
                                       {prod.title}
@@ -625,12 +639,14 @@ export function SiteHeader() {
                     onClick={() => handleCategorySelect(cat.slug)}
                   >
                     <span className="hbr-mnav__thumb">
-                      {firstProd && (
+                      {firstProd && (drawerLoaded || drawerOpen) && (
                         <Image
                           src={firstProd.image}
                           alt={cat.label}
                           width={46}
                           height={46}
+                          sizes="46px"
+                          loading="lazy"
                           className="hbr-mnav__thumb-img"
                         />
                       )}

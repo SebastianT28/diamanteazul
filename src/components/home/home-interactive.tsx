@@ -426,7 +426,7 @@ export function HomeInteractive({
             priority
             fetchPriority="high"
             sizes="100vw"
-            quality={85}
+            quality={80}
             className="hbr-hero-bg-image"
           />
         </div>
@@ -576,7 +576,8 @@ export function HomeInteractive({
                         src={pkg.image}
                         alt={pkg.title}
                         fill
-                        sizes="(max-width: 767px) 50vw, (max-width: 1100px) 33vw, 25vw"
+                        loading="lazy"
+                        sizes="(max-width: 767px) 46vw, (max-width: 1100px) 30vw, 310px"
                         className="hbr-catalog-card__img"
                       />
                     </div>
@@ -684,7 +685,8 @@ export function HomeInteractive({
                     src={moment.image}
                     alt={moment.title}
                     fill
-                    sizes="(max-width: 650px) 50vw, (max-width: 1100px) 33vw, 400px"
+                    loading="lazy"
+                    sizes="(max-width: 650px) 46vw, (max-width: 1100px) 30vw, 380px"
                     className="hb-story__photo-img"
                   />
                 </div>
@@ -776,6 +778,8 @@ export function HomeInteractive({
                                   alt={rev.product}
                                   width={44}
                                   height={44}
+                                  sizes="48px"
+                                  loading="lazy"
                                   className="hbr-reviews__product-thumb"
                                 />
                               </div>
@@ -806,6 +810,8 @@ export function HomeInteractive({
                                   alt={rev.product}
                                   width={44}
                                   height={44}
+                                  sizes="48px"
+                                  loading="lazy"
                                   className="hbr-reviews__product-thumb"
                                 />
                               </div>

@@ -1289,7 +1289,6 @@ a.hbr-mnav__help {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   opacity: 0;
-  will-change: transform, opacity;
   animation:
     hbr-hero-bubble-float var(--b-dur) ease-in-out var(--b-delay) infinite;
 }
@@ -1338,7 +1337,6 @@ a.hbr-mnav__help {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.88);
   transform: rotate(-32deg);
-  filter: blur(0.4px);
 }
 
 .video-hero.hbr-hero-v2 .hbr-hero-bubble__shell::after {

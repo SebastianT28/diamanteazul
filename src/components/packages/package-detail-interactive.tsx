@@ -293,7 +293,7 @@ export function PackageDetailInteractive({
             {/* Separated Medida & Tiempo Selector Pills */}
             <div
               className="product-variants-row"
-              role="radiogroup"
+              role="group"
               aria-label={`${pkg.variantLabel} y Tiempo`}
             >
               {pkg.slug === "plataforma-360" ? (
@@ -305,7 +305,11 @@ export function PackageDetailInteractive({
                       <span>2.5m × 2.5m</span>
                     </span>
                   </div>
-                  <div className="product-variants-group">
+                  <div
+                    className="product-variants-group"
+                    role="radiogroup"
+                    aria-label="Tiempo"
+                  >
                     <span className="product-variants-label">Tiempo</span>
                     {pkg.sizeOptions.map((option, idx) => {
                       const isActive = idx === selectedSizeIdx
@@ -327,7 +331,11 @@ export function PackageDetailInteractive({
                 </>
               ) : (
                 <>
-                  <div className="product-variants-group">
+                  <div
+                    className="product-variants-group"
+                    role="radiogroup"
+                    aria-label={pkg.variantLabel}
+                  >
                     <span className="product-variants-label">
                       {pkg.variantLabel}
                     </span>
@@ -389,6 +397,8 @@ export function PackageDetailInteractive({
                               alt={model.title}
                               width={64}
                               height={64}
+                              sizes="64px"
+                              loading="lazy"
                               className="hbr-models__thumb-img"
                             />
                           </span>
@@ -698,6 +708,8 @@ export function PackageDetailInteractive({
                                 alt={rev.district}
                                 width={56}
                                 height={56}
+                                sizes="56px"
+                                loading="lazy"
                                 className="hbr-pdp-reviews__thumb"
                               />
                             </div>
@@ -731,6 +743,8 @@ export function PackageDetailInteractive({
                                 alt={rev.district}
                                 width={56}
                                 height={56}
+                                sizes="56px"
+                                loading="lazy"
                                 className="hbr-pdp-reviews__thumb"
                               />
                             </div>
