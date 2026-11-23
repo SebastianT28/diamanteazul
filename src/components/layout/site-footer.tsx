@@ -2,7 +2,11 @@
 
 import { FormEvent, useState } from "react"
 import Link from "next/link"
-import { buildWhatsAppUrl, SOCIAL_LINKS } from "@/data/packages"
+import {
+  buildMailtoUrl,
+  buildWhatsAppUrl,
+  SOCIAL_LINKS,
+} from "@/data/packages"
 import { useCity } from "@/lib/city-context"
 
 export function SiteFooter() {
@@ -12,10 +16,27 @@ export function SiteFooter() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const trimmed = contactValue.trim()
+    if (trimmed.includes("@")) {
+      const mailUrl = buildMailtoUrl({
+        subject: `[Diamante Azul - ${cityConfig.name}] Solicitud de información y novedades`,
+        body: [
+          "Buen día equipo de Diamante Azul,",
+          "",
+          `Quisiera recibir información y novedades sobre el alquiler de juegos inflables en ${cityConfig.name}.`,
+          "",
+          `• Correo de contacto: ${trimmed}`,
+          `• Ciudad: ${cityConfig.name}`,
+        ].join("\n"),
+      })
+      window.location.href = mailUrl
+      setContactValue("")
+      return
+    }
     const message = trimmed
       ? `Buen día, quisiera recibir información de alquiler de inflables en ${cityConfig.name}. Mi contacto es: ${trimmed}`
       : `Buen día, quisiera información sobre el alquiler de inflables en ${cityConfig.name}.`
     window.open(buildWhatsAppUrl(message), "_blank", "noopener,noreferrer")
+    setContactValue("")
   }
 
   return (

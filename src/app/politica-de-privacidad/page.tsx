@@ -65,7 +65,9 @@ export default function PoliticaDePrivacidadPage() {
               nuestras políticas y prácticas, por favor abstente de utilizar
               nuestros Servicios. Si aún tienes alguna pregunta o consulta,
               escríbenos a{" "}
-              <a href="mailto:hola@diamanteazul.pe">hola@diamanteazul.pe</a> o a
+              <a href="mailto:Diamanteazulaqp@gmail.com">
+                Diamanteazulaqp@gmail.com
+              </a> o a
               través de nuestra página de{" "}
               <Link href="/contactanos">Contáctanos</Link>.
             </p>
@@ -536,7 +538,9 @@ export default function PoliticaDePrivacidadPage() {
               padres o tutores, tomaremos medidas inmediatas para suprimir dicha
               información de nuestros registros. Si tienes conocimiento de algún
               dato que hayamos podido recibir de un menor de edad, escríbenos a{" "}
-              <a href="mailto:hola@diamanteazul.pe">hola@diamanteazul.pe</a>.
+              <a href="mailto:Diamanteazulaqp@gmail.com">
+                Diamanteazulaqp@gmail.com
+              </a>.
             </p>
 
             <h2 id="derechos-arco">
@@ -612,7 +616,9 @@ export default function PoliticaDePrivacidadPage() {
             <ul>
               <li>
                 Enviando un correo electrónico a{" "}
-                <a href="mailto:hola@diamanteazul.pe">hola@diamanteazul.pe</a>{" "}
+                <a href="mailto:Diamanteazulaqp@gmail.com">
+                Diamanteazulaqp@gmail.com
+              </a>{" "}
                 con el asunto «<strong>Solicitud Derechos ARCO – Ley N° 29733</strong>
                 », indicando tu nombre completo, número de DNI/CE, la
                 descripción clara y precisa de tu solicitud y el medio por el
@@ -677,7 +683,9 @@ export default function PoliticaDePrivacidadPage() {
               Si tienes preguntas, comentarios o solicitudes sobre este aviso de
               privacidad o sobre el tratamiento de tus datos personales, puedes
               escribirnos por correo electrónico a{" "}
-              <a href="mailto:hola@diamanteazul.pe">hola@diamanteazul.pe</a>, a
+              <a href="mailto:Diamanteazulaqp@gmail.com">
+                Diamanteazulaqp@gmail.com
+              </a>, a
               través de nuestra sección{" "}
               <Link href="/contactanos">Contáctanos</Link>, o dirigirte a:
             </p>
@@ -689,7 +697,9 @@ export default function PoliticaDePrivacidadPage() {
               Lima Metropolitana, Perú
               <br />
               Correo oficial:{" "}
-              <a href="mailto:hola@diamanteazul.pe">hola@diamanteazul.pe</a>
+              <a href="mailto:Diamanteazulaqp@gmail.com">
+                Diamanteazulaqp@gmail.com
+              </a>
             </p>
           </div>
         </article>

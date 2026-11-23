@@ -36,7 +36,7 @@ const AREQUIPA_JSON_LD = {
     "Alquiler de juegos inflables en tonos pastel y a color, seguros y 100% desinfectados para fiestas infantiles y eventos familiares en la ciudad de Arequipa, Arequipa.",
   url: "https://diamanteazul.pe/arequipa",
   telephone: "+51948311603",
-  email: "hola@diamanteazul.pe",
+  email: "Diamanteazulaqp@gmail.com",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Arequipa",

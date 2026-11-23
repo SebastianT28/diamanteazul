@@ -3,7 +3,11 @@
 import { ChangeEvent, FormEvent, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { buildWhatsAppUrl, WHATSAPP_CONFIG } from "@/data/packages"
+import {
+  buildMailtoUrl,
+  buildWhatsAppUrl,
+  WHATSAPP_CONFIG,
+} from "@/data/packages"
 import { useCity } from "@/lib/city-context"
 
 const SUBJECT_OPTIONS = [
@@ -38,9 +42,36 @@ export function ContactInteractive() {
 
   const whatsappHref = buildWhatsAppUrl(whatsappMessage)
 
+  const mailtoHref = (() => {
+    const cleanEmail = email.trim()
+    const cleanFile = fileName.trim()
+    const cleanMsg = message.trim()
+    const emailSubject = `[Diamante Azul - ${cityConfig.name}] ${subject}`
+    const emailBodyLines = [
+      "Buen día equipo de Diamante Azul,",
+      "",
+      `Les escribo desde el sitio web para realizar una consulta sobre ${subject.toLowerCase()}:`,
+      "",
+      `• Ciudad de atención: ${cityConfig.name}`,
+      `• Asunto: ${subject}`,
+      ...(cleanEmail ? [`• Correo de contacto: ${cleanEmail}`] : []),
+      ...(cleanFile
+        ? [`• Archivo referenciado (adjuntar al correo): ${cleanFile}`]
+        : []),
+      "",
+      "Mensaje:",
+      cleanMsg ||
+        `Quisiera recibir información y disponibilidad sobre el alquiler de inflables en ${cityConfig.name}.`,
+    ]
+    return buildMailtoUrl({
+      subject: emailSubject,
+      body: emailBodyLines.join("\n"),
+    })
+  })()
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    window.open(whatsappHref, "_blank", "noopener,noreferrer")
+    window.location.href = mailtoHref
     setSubmitted(true)
     setEmail("")
     setFileName("")
@@ -138,9 +169,9 @@ export function ContactInteractive() {
               <h3>Escríbenos por correo</h3>
               <a
                 className="hb-contact__email"
-                href="mailto:hola@diamanteazul.pe"
+                href={mailtoHref}
               >
-                hola@diamanteazul.pe
+                {WHATSAPP_CONFIG.email}
               </a>
             </div>
 

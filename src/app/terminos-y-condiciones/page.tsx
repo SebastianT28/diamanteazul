@@ -572,7 +572,9 @@ export default function TerminosYCondicionesPage() {
               castillos inflables confirmadas dentro del periodo promocional. Si
               tienes alguna consulta sobre estos Términos y Condiciones, puedes
               escribirnos en cualquier momento a{" "}
-              <a href="mailto:hola@diamanteazul.pe">hola@diamanteazul.pe</a> o a
+              <a href="mailto:Diamanteazulaqp@gmail.com">
+                Diamanteazulaqp@gmail.com
+              </a> o a
               través de nuestra página de{" "}
               <Link href="/contactanos">Contáctanos</Link>.
             </p>

@@ -158,6 +158,7 @@ export interface InflatablePackage {
 export const WHATSAPP_CONFIG = {
   phone: "51948311603",
   displayPhone: "+51 948 311 603",
+  email: "Diamanteazulaqp@gmail.com",
   businessName: "Diamante Azul",
   legalName: "Diamante Azul Servicios EIRL",
 } as const
@@ -2118,4 +2119,19 @@ export function buildWhatsAppUrl(
   const text = `Buen día, quisiera información y disponibilidad de alquiler de inflables${districtPart}.`
 
   return `https://wa.me/${WHATSAPP_CONFIG.phone}?text=${encodeURIComponent(text)}`
+}
+
+export function buildMailtoUrl(params: {
+  subject?: string
+  body?: string
+} = {}): string {
+  const queryParts: string[] = []
+  if (params.subject) {
+    queryParts.push(`subject=${encodeURIComponent(params.subject)}`)
+  }
+  if (params.body) {
+    queryParts.push(`body=${encodeURIComponent(params.body)}`)
+  }
+  const query = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
+  return `mailto:${WHATSAPP_CONFIG.email}${query}`
 }

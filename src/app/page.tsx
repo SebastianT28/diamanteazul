@@ -39,7 +39,7 @@ const HOME_JSON_LD = {
     "Alquiler de juegos inflables en tonos pastel y a color, seguros y 100% desinfectados para fiestas infantiles y eventos en Lima Moderna (San Isidro, Miraflores, Santiago de Surco, San Borja, Magdalena del Mar, Surquillo, San Luis y zonas cercanas).",
   url: "https://diamanteazul.pe",
   telephone: "+51948311603",
-  email: "hola@diamanteazul.pe",
+  email: "Diamanteazulaqp@gmail.com",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Lima",
