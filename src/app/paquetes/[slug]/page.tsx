@@ -27,9 +27,28 @@ export async function generateMetadata({
     }
   }
 
+  const title = `${pkg.tierName}: ${pkg.title} | Alquiler de Inflables en Lima y Arequipa — Diamante Azul`
+  const description = `${pkg.shortDescription} Medida: ${pkg.specs.minSpace}. Alquiler con montaje, desinfección y personal de apoyo en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis) y en la ciudad de Arequipa.`
+
   return {
-    title: `${pkg.tierName}: ${pkg.title} | Alquiler de Inflables en Lima y Arequipa — Diamante Azul`,
-    description: `${pkg.shortDescription} Medida: ${pkg.specs.minSpace}. Alquiler con montaje, desinfección y personal de apoyo en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis) y en la ciudad de Arequipa.`,
+    title,
+    description,
+    alternates: {
+      canonical: `/paquetes/${pkg.slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/paquetes/${pkg.slug}`,
+      type: "website",
+      locale: "es_PE",
+      images: [
+        {
+          url: pkg.image,
+          alt: pkg.title,
+        },
+      ],
+    },
   }
 }
 

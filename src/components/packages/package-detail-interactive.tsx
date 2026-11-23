@@ -26,12 +26,19 @@ export function PackageDetailInteractive({
 
   const [selectedThumbIdx, setSelectedThumbIdx] = React.useState(0)
   const [selectedSizeIdx, setSelectedSizeIdx] = React.useState(defaultSizeIdx)
+  const [siteOrigin, setSiteOrigin] = React.useState("https://diamanteazul.pe")
   const [activeSection, setActiveSection] = React.useState<
     "whats-included" | "customer-reviews" | "hbr-product-details"
   >("whats-included")
   const [stickyVisible, setStickyVisible] = React.useState(false)
 
   const mainCtaRef = React.useRef<HTMLAnchorElement>(null)
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.location.origin) {
+      setSiteOrigin(window.location.origin)
+    }
+  }, [])
 
   React.useEffect(() => {
     setSelectedThumbIdx(0)
@@ -104,20 +111,10 @@ export function PackageDetailInteractive({
   }
 
   const whatsappUrl = React.useMemo(() => {
-    const timePart =
-      pkg.slug === "plataforma-360"
-        ? activeSize.label
-        : `${activeSize.label} · ${pkg.rentalDurationPill}`
-    const customMessage = `Buen día, quisiera consultar disponibilidad para alquilar *${pkg.title}* (${timePart} — ${activeSize.price}) en ${cityConfig.whatsappCityLabel}.`
+    const productPageUrl = `${siteOrigin}/paquetes/${pkg.slug}`
+    const customMessage = `Buen día, quisiera consultar disponibilidad para alquilar *${pkg.title}* en ${cityConfig.whatsappCityLabel}.\n${productPageUrl}`
     return buildWhatsAppUrl({ customMessage })
-  }, [
-    pkg.slug,
-    pkg.title,
-    pkg.rentalDurationPill,
-    activeSize.label,
-    activeSize.price,
-    cityConfig.whatsappCityLabel,
-  ])
+  }, [pkg.slug, pkg.title, cityConfig.whatsappCityLabel, siteOrigin])
 
   return (
     <main className="hbr-pdp">
