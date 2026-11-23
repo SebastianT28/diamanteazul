@@ -6,7 +6,7 @@ import Link from "next/link"
 import { buildWhatsAppUrl } from "@/data/packages"
 import { useCity } from "@/lib/city-context"
 
-type FaqFilterId = "all" | "bounce" | "mini" | "ordering" | "safety"
+type FaqFilterId = "all" | "bounce" | "experiences" | "ordering" | "safety"
 
 interface FaqItemData {
   id: string
@@ -15,7 +15,7 @@ interface FaqItemData {
 }
 
 interface FaqGroupData {
-  id: "bounce" | "safety"
+  id: "bounce" | "experiences" | "ordering" | "safety"
   title: string
   headingId: string
   items: FaqItemData[]
@@ -23,96 +23,183 @@ interface FaqGroupData {
 
 const FAQ_FILTERS: { id: FaqFilterId; label: string }[] = [
   { id: "all", label: "Todas las preguntas" },
-  { id: "bounce", label: "Castillos Inflables" },
-  { id: "mini", label: "Mini Inflables" },
-  { id: "ordering", label: "Reservas y Entregas" },
-  { id: "safety", label: "Seguridad y Uso" },
+  { id: "bounce", label: "Castillos y Toboganes" },
+  { id: "experiences", label: "Acuáticos, Juegos y 360°" },
+  { id: "ordering", label: "Reservas, Pagos y Cobertura" },
+  { id: "safety", label: "Seguridad, Espacio y Luz" },
 ]
 
 const FAQ_GROUPS: FaqGroupData[] = [
   {
     id: "bounce",
-    title: "Castillos Inflables",
+    title: "Castillos y Toboganes",
     headingId: "hbf-bounce",
     items: [
       {
         id: "bounce-1",
         question:
-          "¿Se pueden instalar los castillos inflables tanto en interiores como en exteriores?",
+          "¿Qué líneas de castillos y toboganes inflables ofrece Diamante Azul?",
         answer: (
           <p>
-            Sí, nuestros castillos inflables pastel están diseñados para lucir
-            hermosos tanto en salas amplias, cocheras y terrazas techadas como
-            en jardines exteriores. Nuestro equipo evalúa la superficie al
-            llegar e instala la protección y el sistema de anclaje ideal.
+            Contamos con tres colecciones principales en nuestro catálogo:{" "}
+            <strong>Línea Dreamy Pastel</strong> (como{" "}
+            <em>Arcoíris Mágico, Castillo de Ensueño, Tobogán de Ensueño</em> y{" "}
+            <em>Mega Circuito Encanto</em>),{" "}
+            <strong>Línea White Trend</strong> (castillos blancos elegantes que
+            incluyen decoración con 100 globos a elección) y{" "}
+            <strong>Diversión a Color</strong> (castillos clásicos, toboganes,
+            circuitos de obstáculos y piscina de pelotas en colores vibrantes).
           </p>
         ),
       },
       {
         id: "bounce-2",
-        question: "¿Cuánto tiempo toma dejar listo e inflado el castillo?",
+        question: "¿Cuántas horas dura el alquiler y qué incluye el servicio?",
         answer: (
           <p>
-            ¡El inflado en sí toma apenas <strong>60 segundos</strong>! Nuestro
-            equipo llega con anticipación antes del inicio de tu celebración
-            para colocar los pisos microporosos, desinfectar cada superficie y
-            dejar todo impecable.
+            El alquiler estándar de nuestros castillos, toboganes, juegos e
+            inflables acuáticos es de <strong>5 horas por evento</strong>. El
+            servicio incluye el{" "}
+            <strong>
+              montaje y desmontaje, desinfección completa y personal de apoyo
+            </strong>{" "}
+            para supervisar el uso adecuado. Si deseas extender la diversión,
+            puedes solicitar <strong>horas adicionales</strong> (desde S/ 50 a
+            S/ 150 por hora según el modelo elegido).
           </p>
         ),
       },
       {
         id: "bounce-3",
         question:
-          "¿Cómo garantizan la limpieza y desinfección de cada inflable?",
+          "¿Se pueden instalar los inflables tanto en interiores como en jardines exteriores?",
         answer: (
           <p>
-            Cada castillo y cada pelota de la piscina pasan por un riguroso
-            protocolo de higienización antes y después de cada evento utilizando
-            productos seguros para niños, además de una segunda limpieza en
-            sitio una vez instalado.
+            Sí. Contamos con modelos compactos ideales para salas amplias,
+            cocheras, terrazas o departamentos —como la{" "}
+            <strong>Piscina Inflable de Pelotas (2.4m × 2.4m)</strong>, el{" "}
+            <strong>Soft Play (3m × 3m)</strong>, las{" "}
+            <strong>Camas Saltarinas</strong> y los{" "}
+            <strong>Castillos de 3m × 3m</strong>—, así como castillos medianos y
+            grandes circuitos de hasta <strong>15 metros de largo</strong> para
+            jardines, parques, condominios y colegios.
           </p>
         ),
       },
       {
         id: "bounce-4",
         question:
-          "¿Es normal sentir una ligera salida de aire por las costuras del inflable?",
+          "¿Qué incluye la decoración con globos en la Línea White Trend y en la Bubble House?",
         answer: (
           <p>
-            Sí, no te preocupes. Una leve salida de aire a través de las
-            costuras es completamente normal y necesaria para mantener la
-            presión elástica perfecta mientras los niños saltan sin que el
-            material se sobretensione.
+            Tanto nuestros castillos de la <strong>Línea White Trend</strong>{" "}
+            (<em>Castillo Blanco Clásico, Castillo Blanco con Piscina de Pelotas</em>{" "}
+            y <em>Castillo Blanco con Tobogán</em>) como la{" "}
+            <strong>Bubble House</strong> incluyen una decoración con{" "}
+            <strong>100 globos de 2 a 3 colores a elección del cliente</strong>,
+            además de pelotas internas y personal de apoyo permanente para que
+            armonicen con la temática de tu fiesta.
           </p>
         ),
       },
+    ],
+  },
+  {
+    id: "experiences",
+    title: "Inflables Acuáticos, Juegos y Sesiones 360°",
+    headingId: "hbf-experiences",
+    items: [
       {
-        id: "bounce-5",
-        question: "¿La turbina de aire hace mucho ruido?",
-        answer: (
-          <p>
-            Nuestras turbinas de tono neutro son de bajo nivel sonoro —
-            ¡probablemente las risas de los niños se escuchen más fuerte! En
-            interiores el sonido se percibe ligeramente más que al aire libre en
-            jardín.
-          </p>
-        ),
-      },
-      {
-        id: "bounce-6",
+        id: "exp-1",
         question:
-          "¿Qué espacio libre necesito considerar alrededor del castillo?",
+          "¿Cómo funcionan los Inflables Acuáticos (Aquaroller, Piscina con Botes y Cañón de Espuma)?",
         answer: (
           <p>
-            Recomendamos contar con al menos 60 cm libres alrededor de los lados
-            y 1 metro en la parte posterior para ubicar la turbina con total
-            comodidad, además de verificar la altura libre del techo si es en
-            interior.
+            Son nuestras opciones favoritas para días soleados y verano por{" "}
+            <strong>5 horas de alquiler</strong> con personal de supervisión.
+            Tanto el <strong>Aquaroller (Pelota Acuática)</strong> como la{" "}
+            <strong>Piscina con Botes Flotantes</strong> incluyen una piscina
+            inflable de <strong>7m × 6m</strong> (el suministro de agua para el
+            llenado corre por cuenta del cliente). El{" "}
+            <strong>Super Cañón de Espuma</strong> incluye insumos de espuma,
+            música, luces y operador durante el evento.
           </p>
         ),
       },
       {
-        id: "bounce-7",
+        id: "exp-2",
+        question:
+          "¿Qué incluyen la Plataforma 360°, el Domo Overhead 360 y la Estación de Fotos?",
+        answer: (
+          <p>
+            Nuestras estaciones fotográficas y de video 360° incluyen{" "}
+            <strong>
+              operador en sitio, iluminación LED y accesorios divertidos
+            </strong>{" "}
+            (pistolas de burbujas, billetes falsos, pelucas, lentes y cotillón).
+            Los videos y fotografías se entregan al instante en el celular de
+            cada invitado mediante <strong>código QR o AirDrop</strong> listos
+            para compartir en redes sociales. La Plataforma 360° está disponible
+            en paquetes de 2 o 3 horas, y el Domo Overhead y la Estación de Fotos
+            por 5 horas.
+          </p>
+        ),
+      },
+      {
+        id: "exp-3",
+        question:
+          "¿Tienen juegos para bebés pequeños y también para jóvenes o adultos?",
+        answer: (
+          <p>
+            ¡Sí! Para bebés y niños pequeños de <strong>0 a 5 años</strong>{" "}
+            tenemos el circuito <strong>Soft Play</strong> y la{" "}
+            <strong>Piscina Inflable de Pelotas</strong>. Para niños contamos con
+            más de 16 modelos de castillos y toboganes. Y para niños grandes,
+            jóvenes y adultos ofrecemos juegos de competencia y adrenalina como
+            la <strong>Gran Carrera de Obstáculos (15m × 3m)</strong>, el{" "}
+            <strong>Reloj Demoledor</strong>, las <strong>Bumper Balls</strong>,
+            el <strong>Futbolín Humano</strong> y la <strong>Bubble House</strong>.
+          </p>
+        ),
+      },
+      {
+        id: "exp-4",
+        question:
+          "¿Cuentan con alquiler de sillas u otros complementos para el evento?",
+        answer: (
+          <p>
+            Sí, en nuestra categoría de <strong>Complementos y Extras</strong>{" "}
+            disponemos de <strong>Sillas Metálicas Tapizadas</strong> a{" "}
+            <strong>S/ 45 por docena</strong> para todo el evento, además de{" "}
+            <strong>Generadores Eléctricos</strong> en caso tu locación no cuente
+            con punto de corriente cercano.
+          </p>
+        ),
+      },
+    ],
+  },
+  {
+    id: "ordering",
+    title: "Reservas, Pagos y Cobertura",
+    headingId: "hbf-ordering",
+    items: [
+      {
+        id: "ord-1",
+        question: "¿Cómo reservo una fecha y cuáles son las modalidades de pago?",
+        answer: (
+          <p>
+            La fecha y horario de tu evento se separan con el{" "}
+            <strong>50% de adelanto</strong> mediante{" "}
+            <strong>Yape al 948 311 603</strong> o transferencia a nuestra{" "}
+            <strong>cuenta bancaria BCP</strong>. El{" "}
+            <strong>50% restante</strong> se cancela el mismo día del evento en
+            cuanto el juego queda instalado en tu locación. Los precios del
+            catálogo no incluyen IGV.
+          </p>
+        ),
+      },
+      {
+        id: "ord-2",
         question:
           "¿En qué distritos de Lima y zonas de Arequipa brindan el servicio?",
         answer: (
@@ -125,7 +212,35 @@ const FAQ_GROUPS: FaqGroupData[] = [
             </strong>
             , además de zonas cercanas donde sea viable brindar el servicio.
             Asimismo, contamos con cobertura completa de alquiler e instalación
-            en la ciudad de <strong>Arequipa</strong>.
+            en toda la ciudad de <strong>Arequipa</strong>.
+          </p>
+        ),
+      },
+      {
+        id: "ord-3",
+        question:
+          "¿El traslado tiene costo adicional y con cuánta anticipación llegan a instalar?",
+        answer: (
+          <p>
+            Todos nuestros paquetes incluyen el montaje y desmontaje del equipo.
+            La movilidad tiene un costo referencial de <strong>S/ 30</strong>{" "}
+            (sujeto a la ubicación exacta del evento). Nuestro personal llega con
+            anticipación antes de la hora de inicio pactada para instalar y
+            desinfectar todo, de modo que disfrutes tus{" "}
+            <strong>5 horas completas</strong> de juego.
+          </p>
+        ),
+      },
+      {
+        id: "ord-4",
+        question: "¿Con cuánta anticipación debo realizar mi reserva?",
+        answer: (
+          <p>
+            Recomendamos separar tu inflable con{" "}
+            <strong>1 a 2 semanas de anticipación</strong>, especialmente si tu
+            celebración será en fin de semana. Si tienes un evento de último
+            minuto, escríbenos por WhatsApp al <strong>948 311 603</strong> para
+            confirmarte los modelos disponibles en tu fecha.
           </p>
         ),
       },
@@ -133,89 +248,66 @@ const FAQ_GROUPS: FaqGroupData[] = [
   },
   {
     id: "safety",
-    title: "Seguridad y Uso",
+    title: "Seguridad, Espacio y Electricidad",
     headingId: "hbf-safety",
     items: [
       {
         id: "safety-1",
-        question: "¿Cuántos niños pueden saltar al mismo tiempo?",
+        question:
+          "¿Qué requisitos eléctricos necesitan los inflables y qué hago si mi evento es en un parque sin luz?",
         answer: (
-          <>
-            <p>
-              Nuestros{" "}
-              <strong>
-                modelos compactos de 2.0m × 2.0m permiten de 2 a 3 niños
-                simultáneamente
-              </strong>
-              , mientras que nuestros{" "}
-              <strong>
-                modelos medianos y grandes (2.5m a 3.5m) permiten de 4 a 6 niños
-              </strong>{" "}
-              según la edad.
-            </p>
-            <p>
-              Recomendamos que los niños que ingresen juntos tengan edades y
-              estaturas similares, siempre bajo la supervisión de un adulto
-              responsable.
-            </p>
-          </>
+          <p>
+            Para funcionar, cada juego inflable requiere contar con un{" "}
+            <strong>punto de luz estándar (tomacorriente 220V)</strong> cercano a
+            la zona de instalación. El alquiler del inflable no incluye
+            generador eléctrico; sin embargo, si tu evento es en un parque o
+            jardín sin acceso a corriente, puedes agregar nuestro{" "}
+            <strong>Generador Eléctrico por S/ 200</strong>, que incluye la
+            gasolina para las 5 horas, puesta en marcha y recojo.
+          </p>
         ),
       },
       {
         id: "safety-2",
         question:
-          "¿Se puede utilizar el castillo inflable con agua o espuma?",
+          "¿Cómo sé qué espacio libre necesito para el inflable que quiero alquilar?",
         answer: (
           <p>
-            No. Nuestros castillos funcionan con turbinas eléctricas continuas y
-            están confeccionados en lona mate premium para uso en seco. No deben
-            mojarse ni usarse cerca de piscinas con agua, pintura, calzado o
-            alimentos.
+            En la tarjeta y ficha de cada uno de nuestros{" "}
+            <strong>31 productos</strong> encontrarás sus medidas exactas de{" "}
+            <strong>largo, ancho y alto</strong> (o diámetro). Recomendamos
+            contar con al menos 60 cm adicionales libres alrededor y 1 metro en
+            la parte posterior para ubicar la turbina de aire con total
+            comodidad, así como verificar la altura del techo si se instalará en
+            interior.
           </p>
         ),
       },
       {
         id: "safety-3",
         question:
-          "¿La turbina debe permanecer encendida durante todo el alquiler?",
+          "¿Cómo garantizan la limpieza, desinfección y seguridad durante las horas de juego?",
         answer: (
-          <>
-            <p>
-              Sí. Al igual que todo castillo inflable profesional, requiere
-              flujo de aire constante para mantenerse firme y seguro durante las
-              horas de juego.
-            </p>
-            <p>
-              Solo necesitas una toma de corriente doméstica estándar (220V) a
-              menos de 15 metros; nosotros llevamos extensiones vulcanizadas
-              seguras y protegidas.
-            </p>
-          </>
+          <p>
+            Cada inflable, pieza de Soft Play y pelota pasa por un protocolo de
+            limpieza y desinfección antes de cada evento y un repaso en sitio una
+            vez instalado. Además, nuestros alquileres cuentan con{" "}
+            <strong>personal de apoyo / operador</strong> encargado de velar por
+            el ingreso ordenado según la edad y aforo de cada juego.
+          </p>
         ),
       },
       {
         id: "safety-4",
         question:
-          "¿Los adultos pueden subir a saltar en los castillos inflables?",
+          "¿Cómo se asegura el inflable sobre césped, cemento, porcelanato o grass sintético?",
         answer: (
           <p>
-            Nuestros castillos están diseñados exclusivamente para niños de{" "}
-            <strong>1 a 8 años</strong>. Un adulto puede apoyar desde la entrada
-            o el borde acolchado para asistir a los más pequeños, pero no saltar
-            dentro de la estructura.
-          </p>
-        ),
-      },
-      {
-        id: "safety-5",
-        question:
-          "¿Cómo se fija el castillo si mi piso es de porcelanato, parquet o grass sintético?",
-        answer: (
-          <p>
-            Si la instalación es sobre césped natural utilizamos estacas
-            profundas. Si es sobre piso firme (porcelanato, madera, cemento o
-            grass artificial) utilizamos pesas recubiertas en tonos suaves y
-            pisos microporosos que no dejan ninguna marca.
+            Si la instalación es sobre césped natural utilizamos estacas de
+            anclaje firme; si es sobre superficie dura (porcelanato, parquet,
+            cemento o grass sintético) empleamos bases protectoras y contrapesos
+            seguros que mantienen estable la estructura sin rayar ni marcar tu
+            piso.
           </p>
         ),
       },
@@ -271,10 +363,11 @@ export function FaqInteractive() {
 
   const statusText =
     totalQuestions > 0
-      ? `${totalQuestions} ${totalQuestions === 1 ? "pregunta" : "preguntas"} · ${activeFilter === "all"
-        ? "Castillos inflables estándar y seguridad"
-        : activeFilterObj.label
-      }`
+      ? `${totalQuestions} ${totalQuestions === 1 ? "pregunta" : "preguntas"} · ${
+          activeFilter === "all"
+            ? "Catálogo completo, reservas, cobertura y seguridad"
+            : activeFilterObj.label
+        }`
       : `${activeFilterObj.label} · Escríbenos para atención inmediata`
 
   const handleFilterClick = (filterId: FaqFilterId) => {
@@ -419,16 +512,12 @@ export function FaqInteractive() {
           {totalQuestions === 0 && (
             <div className="hb-faq__empty" data-hbf-empty="">
               <h3 data-hbf-empty-title="">
-                {activeFilter === "mini"
-                  ? "¿Tienes una consulta sobre el Mini Inflable?"
-                  : "¿Tienes una consulta sobre tu reserva o entrega?"}
+                ¿Tienes una consulta adicional sobre tu evento?
               </h3>
               <p data-hbf-empty-copy="">
-                {activeFilter === "mini"
-                  ? "Para asesoría personalizada sobre nuestros modelos compactos para interiores o departamentos, escríbenos directo a nuestro equipo."
-                  : city === "lima"
-                    ? "Para ayuda con disponibilidad de fechas, cobertura en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis y zonas cercanas) o detalles de tu reserva, contáctanos por WhatsApp."
-                    : "Para ayuda con disponibilidad de fechas, cobertura en la ciudad de Arequipa o detalles de tu reserva, contáctanos por WhatsApp."}
+                {city === "lima"
+                  ? "Para ayuda con disponibilidad de fechas, cobertura en Lima Moderna (San Isidro, Miraflores, Surco, San Borja, Magdalena del Mar, Surquillo, San Luis y zonas cercanas) o detalles de tu reserva, contáctanos por WhatsApp."
+                  : "Para ayuda con disponibilidad de fechas, cobertura en la ciudad de Arequipa o detalles de tu reserva, contáctanos por WhatsApp."}
               </p>
               <a
                 className="hb-story__button"
