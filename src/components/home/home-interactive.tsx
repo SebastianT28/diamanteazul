@@ -290,24 +290,42 @@ export function HomeInteractive({
   const reviewTrackRefs = useRef<(HTMLDivElement | null)[]>([]);
   const reviewGroupRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  /* Sync Category Filter from URL Hash if navigated from Header Mega Menu */
+  /* Sync Category Filter from URL Hash or Header Custom Event */
   useEffect(() => {
+    const applyCategorySlug = (catSlug: ProductCategorySlug) => {
+      if (PRODUCT_CATEGORIES.some((c) => c.slug === catSlug)) {
+        setActiveFilter(catSlug);
+        const el = document.getElementById("hbr-home-range");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    };
+
     const syncCategoryFromHash = () => {
       const hash = window.location.hash;
       if (hash.startsWith("#cat-")) {
         const catSlug = hash.replace("#cat-", "") as ProductCategorySlug;
-        if (PRODUCT_CATEGORIES.some((c) => c.slug === catSlug)) {
-          setActiveFilter(catSlug);
-          const el = document.getElementById("hbr-home-range");
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth" });
-          }
-        }
+        applyCategorySlug(catSlug);
       }
     };
+
+    const onCustomSelectCategory = (e: Event) => {
+      const custom = e as CustomEvent<ProductCategorySlug>;
+      if (custom.detail) {
+        applyCategorySlug(custom.detail);
+      }
+    };
+
     syncCategoryFromHash();
     window.addEventListener("hashchange", syncCategoryFromHash);
-    return () => window.removeEventListener("hashchange", syncCategoryFromHash);
+    window.addEventListener("popstate", syncCategoryFromHash);
+    window.addEventListener("da-select-category", onCustomSelectCategory);
+    return () => {
+      window.removeEventListener("hashchange", syncCategoryFromHash);
+      window.removeEventListener("popstate", syncCategoryFromHash);
+      window.removeEventListener("da-select-category", onCustomSelectCategory);
+    };
   }, []);
 
   /* Sync Mobile USP Horizontal Marquee Loop (<=767px) */

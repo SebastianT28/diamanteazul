@@ -35,6 +35,16 @@ export function SiteHeader() {
   })
   const catalogAnchorHref = `${cityConfig.homePath}#hbr-home-range`
 
+  const handleCategorySelect = (catSlug: string) => {
+    setMegaOpen(false)
+    setDrawerOpen(false)
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("da-select-category", { detail: catSlug })
+      )
+    }
+  }
+
   // 1. Measure Top Announcement Ticker for smooth infinite scroll
   useEffect(() => {
     let rafId = 0
@@ -289,14 +299,18 @@ export function SiteHeader() {
                           const previewItems = catProducts.slice(0, 3)
                           return (
                             <section key={cat.slug} className="hbr-mega__group">
-                              <div className="hbr-mega__group-head">
+                              <Link
+                                href={`${cityConfig.homePath}#cat-${cat.slug}`}
+                                className="hbr-mega__group-head"
+                                onClick={() => handleCategorySelect(cat.slug)}
+                              >
                                 <span className="hbr-mega__eyebrow">
                                   {cat.label.toUpperCase()} ({catProducts.length})
                                 </span>
                                 <span className="hbr-mega__note">
                                   {cat.note}
                                 </span>
-                              </div>
+                              </Link>
                               <div className="hbr-mega__products">
                                 {previewItems.map((prod) => (
                                   <Link
@@ -361,6 +375,7 @@ export function SiteHeader() {
               href={cityConfig.homePath}
               className="hbr-header__logo-link"
               aria-label={`Diamante Azul — Ir al inicio (${cityConfig.name})`}
+              onClick={() => setMegaOpen(false)}
             >
               <Image
                 src="/images/home/logo_diamante_azul.webp"
@@ -402,7 +417,10 @@ export function SiteHeader() {
                   city === "lima" ? "is-active" : ""
                 }`}
                 aria-pressed={city === "lima"}
-                onClick={() => switchCity("lima")}
+                onClick={() => {
+                  setMegaOpen(false)
+                  switchCity("lima")
+                }}
               >
                 Lima
               </button>
@@ -412,7 +430,10 @@ export function SiteHeader() {
                   city === "arequipa" ? "is-active" : ""
                 }`}
                 aria-pressed={city === "arequipa"}
-                onClick={() => switchCity("arequipa")}
+                onClick={() => {
+                  setMegaOpen(false)
+                  switchCity("arequipa")
+                }}
               >
                 Arequipa
               </button>
@@ -600,12 +621,8 @@ export function SiteHeader() {
                   <Link
                     key={cat.slug}
                     className="hbr-mnav__model"
-                    href={
-                      firstProd
-                        ? `/paquetes/${firstProd.slug}`
-                        : "/#hbr-home-range"
-                    }
-                    onClick={() => setDrawerOpen(false)}
+                    href={`${cityConfig.homePath}#cat-${cat.slug}`}
+                    onClick={() => handleCategorySelect(cat.slug)}
                   >
                     <span className="hbr-mnav__thumb">
                       {firstProd && (

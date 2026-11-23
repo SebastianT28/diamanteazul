@@ -26,6 +26,7 @@ export function PackageDetailInteractive({
 
   const [selectedThumbIdx, setSelectedThumbIdx] = React.useState(0)
   const [selectedSizeIdx, setSelectedSizeIdx] = React.useState(defaultSizeIdx)
+  const [lightboxOpen, setLightboxOpen] = React.useState(false)
   const [siteOrigin, setSiteOrigin] = React.useState("https://diamanteazul.pe")
   const [activeSection, setActiveSection] = React.useState<
     "whats-included" | "customer-reviews" | "hbr-product-details"
@@ -43,7 +44,17 @@ export function PackageDetailInteractive({
   React.useEffect(() => {
     setSelectedThumbIdx(0)
     setSelectedSizeIdx(defaultSizeIdx)
+    setLightboxOpen(false)
   }, [pkg.slug, defaultSizeIdx])
+
+  React.useEffect(() => {
+    if (!lightboxOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxOpen(false)
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => document.removeEventListener("keydown", onKeyDown)
+  }, [lightboxOpen])
 
   React.useEffect(() => {
     const sectionIds: (
@@ -161,29 +172,27 @@ export function PackageDetailInteractive({
                 className="product-cover__img"
               />
 
-              {hasMultipleImages && (
-                <button
-                  type="button"
-                  className="product-cover__expand-btn"
-                  aria-label="Cambiar vista de imagen"
-                  onClick={handleNextThumb}
+              <button
+                type="button"
+                className="product-cover__expand-btn"
+                aria-label="Ampliar imagen del producto"
+                onClick={() => setLightboxOpen(true)}
+              >
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
                 >
-                  <svg
-                    width="17"
-                    height="17"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              )}
+                  <path
+                    d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
 
               <span className="product-cover__badge" id="mediaCounterBadge">
                 {hasMultipleImages
@@ -788,6 +797,60 @@ export function PackageDetailInteractive({
           </a>
         </div>
       </div>
+
+      {/* 9. FULLSCREEN PRODUCT IMAGE LIGHTBOX MODAL */}
+      {lightboxOpen && (
+        <div
+          className="hbr-pdp-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Vista ampliada de ${pkg.title}`}
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div
+            className="hbr-pdp-lightbox__box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="hbr-pdp-lightbox__close"
+              aria-label="Cerrar vista ampliada"
+              onClick={() => setLightboxOpen(false)}
+            >
+              ×
+            </button>
+            {hasMultipleImages && (
+              <button
+                type="button"
+                className="hbr-pdp-lightbox__nav hbr-pdp-lightbox__nav--prev"
+                aria-label="Imagen anterior"
+                onClick={handlePrevThumb}
+              >
+                ‹
+              </button>
+            )}
+            <div className="hbr-pdp-lightbox__media">
+              <Image
+                src={activeImage}
+                alt={pkg.title}
+                fill
+                sizes="90vw"
+                className="hbr-pdp-lightbox__img"
+              />
+            </div>
+            {hasMultipleImages && (
+              <button
+                type="button"
+                className="hbr-pdp-lightbox__nav hbr-pdp-lightbox__nav--next"
+                aria-label="Imagen siguiente"
+                onClick={handleNextThumb}
+              >
+                ›
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }

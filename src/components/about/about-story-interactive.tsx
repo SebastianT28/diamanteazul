@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useCity } from "@/lib/city-context"
 
 interface JourneySlide {
   id: string
@@ -97,6 +98,7 @@ const MOSAIC_TILES: MosaicTile[] = [
 ]
 
 export function AboutStoryInteractive() {
+  const { cityConfig } = useCity()
   // 1. Jump Navigation Pill Bar state
   const [navPinned, setNavPinned] = useState(false)
   const [activeSection, setActiveSection] = useState("hbs-purpose")
@@ -774,7 +776,10 @@ export function AboutStoryInteractive() {
             Encuentra el castillo inflable perfecto para tu mundo.
           </p>
           <div className="hb-story__actions">
-            <Link className="hb-story__button" href="/#hbr-home-range">
+            <Link
+              className="hb-story__button"
+              href={`${cityConfig.homePath}#hbr-home-range`}
+            >
               <span>Explorar los inflables</span>
               <span aria-hidden="true">→</span>
             </Link>

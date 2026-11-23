@@ -26,24 +26,26 @@ export function ContactInteractive() {
     setFileName(file ? file.name : "")
   }
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setSubmitted(true)
-    setEmail("")
-    setFileName("")
-    setMessage("")
-  }
-
   const whatsappMessage = (() => {
     const cleanEmail = email.trim() ? ` (${email.trim()})` : ""
+    const fileNote = fileName.trim() ? ` [Adjunto: ${fileName.trim()}]` : ""
     const cleanMsg = message.trim()
     if (cleanMsg) {
-      return `Buen día, escribo por ${subject.toLowerCase()} en ${cityConfig.name}${cleanEmail}: ${cleanMsg}`
+      return `Buen día, escribo por ${subject.toLowerCase()} en ${cityConfig.name}${cleanEmail}${fileNote}: ${cleanMsg}`
     }
     return `Buen día, quisiera realizar una consulta sobre ${subject.toLowerCase()} en ${cityConfig.name}.`
   })()
 
   const whatsappHref = buildWhatsAppUrl(whatsappMessage)
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    window.open(whatsappHref, "_blank", "noopener,noreferrer")
+    setSubmitted(true)
+    setEmail("")
+    setFileName("")
+    setMessage("")
+  }
 
   return (
     <main
