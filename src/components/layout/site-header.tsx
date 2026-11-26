@@ -330,7 +330,7 @@ export function SiteHeader() {
                                     href={`/paquetes/${prod.slug}`}
                                     onClick={() => {
                                       setMegaOpen(false)
-                                      trackProductClick(prod.slug, "view", city)
+                                      trackProductClick(prod.slug, "view", city, "menu")
                                     }}
                                   >
                                     <div className="hbr-mega__media">

@@ -1,6 +1,7 @@
 import fs from "fs/promises"
 import os from "os"
 import path from "path"
+import zlib from "zlib"
 import mysql from "mysql2/promise"
 import {
   DEFAULT_ADMIN_PASSWORD_HASH,
@@ -65,8 +66,18 @@ export interface AdminProductFormInput {
 interface LocalStoreFile {
   adminUser: StoredAdminUser
   overrides: Record<string, ImageOverrideMeta>
+  imageRestoredAt?: Record<string, number>
   productChanges?: Record<string, ProductChangeRecord>
+  productRestoredAt?: Record<string, number>
   productClicks?: Record<string, ProductClickStats>
+  clicksResetAt?: number
+  slugResetAt?: Record<string, number>
+}
+
+interface CompactClicksCloudPayload {
+  r: number // global clicksResetAt
+  s: Record<string, number> // per-slug resetAt
+  c: Record<string, [number, number, number, number, number]> // slug -> [vL, vA, wL, wA, ts]
 }
 
 const IS_READONLY_SERVERLESS = Boolean(
@@ -81,8 +92,35 @@ const LOCAL_BACKUP_DIR = IS_READONLY_SERVERLESS
   ? path.join(os.tmpdir(), "da-original-images")
   : path.join(process.cwd(), "data", "original-images")
 
+// Shared Cloud KV Persistence for Serverless environments (Vercel preview when MySQL is not connected yet)
+const CLOUD_KV_BASE = "https://keyvalue.immanuel.co/api/KeyVal"
+const CLOUD_KV_APP_KEY = "wd4008cg"
+const CLOUD_CLICKS_KEYS = ["da_k0", "da_k1", "da_k2", "da_k3", "da_k4", "da_k5"]
+const CLOUD_ADMIN_KEYS = [
+  "da_a0",
+  "da_a1",
+  "da_a2",
+  "da_a3",
+  "da_a4",
+  "da_a5",
+  "da_a6",
+  "da_a7",
+  "da_a8",
+  "da_a9",
+  "da_a10",
+  "da_a11",
+  "da_a12",
+  "da_a13",
+  "da_a14",
+  "da_a15",
+]
+const CLOUD_CHUNK_LEN = 175
+
 const globalForStore = globalThis as unknown as {
   __daLocalStoreCache?: LocalStoreFile
+  __daLastCloudAdminSync?: number
+  __daLastCloudClicksSync?: number
+  __daClicksQueue?: Promise<void>
 }
 
 let pool: mysql.Pool | null = null
@@ -178,52 +216,283 @@ async function ensureMySqlSchema(): Promise<boolean> {
   }
 }
 
-async function readLocalStore(): Promise<LocalStoreFile> {
+function createDefaultStore(): LocalStoreFile {
+  return {
+    adminUser: {
+      username: DEFAULT_ADMIN_USERNAME,
+      passwordHash: DEFAULT_ADMIN_PASSWORD_HASH,
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
+    overrides: {},
+    imageRestoredAt: {},
+    productChanges: {},
+    productRestoredAt: {},
+    productClicks: {},
+    clicksResetAt: 0,
+    slugResetAt: {},
+  }
+}
+
+async function saveCompressedToCloudKeys(
+  keys: string[],
+  payloadObj: unknown
+): Promise<void> {
+  if (!IS_READONLY_SERVERLESS || isMySqlConfigured()) return
+  try {
+    const comp = zlib
+      .deflateRawSync(Buffer.from(JSON.stringify(payloadObj)))
+      .toString("base64url")
+    const chunks = keys.map(
+      (_, i) =>
+        comp.slice(i * CLOUD_CHUNK_LEN, (i + 1) * CLOUD_CHUNK_LEN) || "_"
+    )
+    await Promise.all(
+      keys.map((k, i) =>
+        fetch(
+          `${CLOUD_KV_BASE}/UpdateValue/${CLOUD_KV_APP_KEY}/${k}/${chunks[i]}`,
+          { method: "POST", cache: "no-store" }
+        )
+      )
+    )
+  } catch (err) {
+    console.warn("[admin-db] Cloud KV save warning:", err)
+  }
+}
+
+async function loadCompressedFromCloudKeys<T>(keys: string[]): Promise<T | null> {
+  if (!IS_READONLY_SERVERLESS || isMySqlConfigured()) return null
+  try {
+    const parts = await Promise.all(
+      keys.map(async (k) => {
+        const res = await fetch(
+          `${CLOUD_KV_BASE}/GetValue/${CLOUD_KV_APP_KEY}/${k}`,
+          { cache: "no-store" }
+        )
+        if (!res.ok) return ""
+        const val = (await res.json()) as string | null
+        return val && val !== "_" ? String(val) : ""
+      })
+    )
+    const comp = parts.join("")
+    if (!comp) return null
+    const raw = zlib
+      .inflateRawSync(Buffer.from(comp, "base64url"))
+      .toString("utf8")
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
+function mergeAdminState(
+  base: LocalStoreFile,
+  incoming: Partial<LocalStoreFile> | null
+): LocalStoreFile {
+  if (!incoming) return base
+
+  // 1. Merge adminUser by timestamp
+  const baseUserTs = Date.parse(base.adminUser?.updatedAt || "2026-01-01T00:00:00.000Z") || 0
+  const incUserTs = Date.parse(incoming.adminUser?.updatedAt || "2026-01-01T00:00:00.000Z") || 0
+  const adminUser =
+    incUserTs > baseUserTs && incoming.adminUser
+      ? incoming.adminUser
+      : base.adminUser
+
+  // 2. Merge imageRestoredAt & overrides
+  const imageRestoredAt: Record<string, number> = {
+    ...(base.imageRestoredAt ?? {}),
+  }
+  for (const [k, ts] of Object.entries(incoming.imageRestoredAt ?? {})) {
+    imageRestoredAt[k] = Math.max(imageRestoredAt[k] ?? 0, Number(ts) || 0)
+  }
+
+  const overrides: Record<string, ImageOverrideMeta> = {}
+  const allOverrideKeys = new Set([
+    ...Object.keys(base.overrides ?? {}),
+    ...Object.keys(incoming.overrides ?? {}),
+  ])
+  for (const k of allOverrideKeys) {
+    const bOv = base.overrides?.[k]
+    const iOv = incoming.overrides?.[k]
+    const best =
+      bOv && iOv
+        ? iOv.updatedAt >= bOv.updatedAt
+          ? iOv
+          : bOv
+        : iOv ?? bOv
+    if (best && best.updatedAt > (imageRestoredAt[k] ?? 0)) {
+      overrides[k] = best
+    }
+  }
+
+  // 3. Merge productRestoredAt & productChanges
+  const productRestoredAt: Record<string, number> = {
+    ...(base.productRestoredAt ?? {}),
+  }
+  for (const [slug, ts] of Object.entries(incoming.productRestoredAt ?? {})) {
+    productRestoredAt[slug] = Math.max(
+      productRestoredAt[slug] ?? 0,
+      Number(ts) || 0
+    )
+  }
+
+  const productChanges: Record<string, ProductChangeRecord> = {}
+  const allProdSlugs = new Set([
+    ...Object.keys(base.productChanges ?? {}),
+    ...Object.keys(incoming.productChanges ?? {}),
+  ])
+  for (const slug of allProdSlugs) {
+    const bCh = base.productChanges?.[slug]
+    const iCh = incoming.productChanges?.[slug]
+    const best =
+      bCh && iCh
+        ? iCh.updatedAt >= bCh.updatedAt
+          ? iCh
+          : bCh
+        : iCh ?? bCh
+    if (best && best.updatedAt > (productRestoredAt[slug] ?? 0)) {
+      productChanges[slug] = best
+    }
+  }
+
+  // 4. Merge clicks & resets
+  const clicksResetAt = Math.max(
+    base.clicksResetAt ?? 0,
+    incoming.clicksResetAt ?? 0
+  )
+  const slugResetAt: Record<string, number> = { ...(base.slugResetAt ?? {}) }
+  for (const [slug, ts] of Object.entries(incoming.slugResetAt ?? {})) {
+    slugResetAt[slug] = Math.max(slugResetAt[slug] ?? 0, Number(ts) || 0)
+  }
+
+  const productClicks: Record<string, ProductClickStats> = {}
+  const allClickSlugs = new Set([
+    ...Object.keys(base.productClicks ?? {}),
+    ...Object.keys(incoming.productClicks ?? {}),
+  ])
+  for (const slug of allClickSlugs) {
+    const effectiveReset = Math.max(clicksResetAt, slugResetAt[slug] ?? 0)
+    const bClk =
+      base.productClicks?.[slug] &&
+      base.productClicks[slug].lastClickedAt > effectiveReset
+        ? base.productClicks[slug]
+        : null
+    const iClk =
+      incoming.productClicks?.[slug] &&
+      incoming.productClicks[slug].lastClickedAt > effectiveReset
+        ? incoming.productClicks[slug]
+        : null
+    if (!bClk && !iClk) continue
+    productClicks[slug] = {
+      slug,
+      viewClicksLima: Math.max(bClk?.viewClicksLima ?? 0, iClk?.viewClicksLima ?? 0),
+      viewClicksArequipa: Math.max(
+        bClk?.viewClicksArequipa ?? 0,
+        iClk?.viewClicksArequipa ?? 0
+      ),
+      whatsappClicksLima: Math.max(
+        bClk?.whatsappClicksLima ?? 0,
+        iClk?.whatsappClicksLima ?? 0
+      ),
+      whatsappClicksArequipa: Math.max(
+        bClk?.whatsappClicksArequipa ?? 0,
+        iClk?.whatsappClicksArequipa ?? 0
+      ),
+      lastClickedAt: Math.max(bClk?.lastClickedAt ?? 0, iClk?.lastClickedAt ?? 0),
+    }
+  }
+
+  return {
+    adminUser,
+    overrides,
+    imageRestoredAt,
+    productChanges,
+    productRestoredAt,
+    productClicks,
+    clicksResetAt,
+    slugResetAt,
+  }
+}
+
+async function readDiskOrMemoryStore(): Promise<LocalStoreFile> {
   try {
     const raw = await fs.readFile(LOCAL_STORE_PATH, "utf-8")
     const parsed = JSON.parse(raw) as Partial<LocalStoreFile>
-    const result: LocalStoreFile = {
-      adminUser: parsed.adminUser ?? {
-        username: DEFAULT_ADMIN_USERNAME,
-        passwordHash: DEFAULT_ADMIN_PASSWORD_HASH,
-        updatedAt: new Date().toISOString(),
-      },
-      overrides: parsed.overrides ?? {},
-      productChanges: parsed.productChanges ?? {},
-      productClicks: parsed.productClicks ?? {},
-    }
-    globalForStore.__daLocalStoreCache = result
-    return result
+    const merged = mergeAdminState(
+      globalForStore.__daLocalStoreCache ?? createDefaultStore(),
+      parsed
+    )
+    globalForStore.__daLocalStoreCache = merged
+    return merged
   } catch {
     if (globalForStore.__daLocalStoreCache) {
       return globalForStore.__daLocalStoreCache
     }
-    return {
-      adminUser: {
-        username: DEFAULT_ADMIN_USERNAME,
-        passwordHash: DEFAULT_ADMIN_PASSWORD_HASH,
-        updatedAt: new Date().toISOString(),
-      },
-      overrides: {},
-      productChanges: {},
-      productClicks: {},
-    }
+    const def = createDefaultStore()
+    globalForStore.__daLocalStoreCache = def
+    return def
   }
 }
 
-async function writeLocalStore(store: LocalStoreFile): Promise<void> {
+async function writeDiskAndMemoryStore(store: LocalStoreFile): Promise<void> {
   globalForStore.__daLocalStoreCache = store
   try {
     await fs.mkdir(path.dirname(LOCAL_STORE_PATH), { recursive: true })
     await fs.writeFile(LOCAL_STORE_PATH, JSON.stringify(store, null, 2), "utf-8")
   } catch {
-    // Fallback to os.tmpdir() if process.cwd() is read-only
     try {
       const tmpPath = path.join(os.tmpdir(), "da-admin-store.json")
       await fs.writeFile(tmpPath, JSON.stringify(store, null, 2), "utf-8")
     } catch {
       // Keep in globalForStore.__daLocalStoreCache
     }
+  }
+}
+
+async function readLocalStore(forceCloudSync = false): Promise<LocalStoreFile> {
+  let local = await readDiskOrMemoryStore()
+
+  if (IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+    const now = Date.now()
+    const lastSync = globalForStore.__daLastCloudAdminSync ?? 0
+    if (forceCloudSync || now - lastSync > 1500) {
+      globalForStore.__daLastCloudAdminSync = now
+      const cloudAdmin =
+        await loadCompressedFromCloudKeys<Partial<LocalStoreFile>>(
+          CLOUD_ADMIN_KEYS
+        )
+      if (cloudAdmin) {
+        local = mergeAdminState(local, cloudAdmin)
+        await writeDiskAndMemoryStore(local)
+      }
+    }
+  }
+
+  return local
+}
+
+async function writeLocalStore(
+  store: LocalStoreFile,
+  syncAdminCloud = true
+): Promise<void> {
+  await writeDiskAndMemoryStore(store)
+
+  if (syncAdminCloud && IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+    const cloudAdmin =
+      await loadCompressedFromCloudKeys<Partial<LocalStoreFile>>(
+        CLOUD_ADMIN_KEYS
+      )
+    const merged = mergeAdminState(store, cloudAdmin)
+    await writeDiskAndMemoryStore(merged)
+    const adminPayload: Partial<LocalStoreFile> = {
+      adminUser: merged.adminUser,
+      overrides: merged.overrides,
+      imageRestoredAt: merged.imageRestoredAt,
+      productChanges: merged.productChanges,
+      productRestoredAt: merged.productRestoredAt,
+    }
+    await saveCompressedToCloudKeys(CLOUD_ADMIN_KEYS, adminPayload)
+    globalForStore.__daLastCloudAdminSync = Date.now()
   }
 }
 
@@ -407,8 +676,10 @@ export async function restoreOriginalSlotImage(slotKey: string): Promise<void> {
     // No local backup needed if never overwritten on disk
   }
 
-  const local = await readLocalStore()
+  const local = await readLocalStore(true)
   delete local.overrides[slot.key]
+  local.imageRestoredAt = local.imageRestoredAt ?? {}
+  local.imageRestoredAt[slot.key] = Date.now()
   await writeLocalStore(local)
 
   if (await ensureMySqlSchema()) {
@@ -863,7 +1134,7 @@ export async function deleteCatalogProduct(slug: string): Promise<void> {
   const now = Date.now()
   const isBaseProduct = PACKAGES_DATA.some((p) => p.slug === slug)
 
-  const local = await readLocalStore()
+  const local = await readLocalStore(true)
   local.productChanges = local.productChanges ?? {}
   if (isBaseProduct) {
     local.productChanges[slug] = {
@@ -873,6 +1144,8 @@ export async function deleteCatalogProduct(slug: string): Promise<void> {
     }
   } else {
     delete local.productChanges[slug]
+    local.productRestoredAt = local.productRestoredAt ?? {}
+    local.productRestoredAt[slug] = now
   }
   await writeLocalStore(local)
 
@@ -899,11 +1172,13 @@ export async function deleteCatalogProduct(slug: string): Promise<void> {
 }
 
 export async function restoreBaseCatalogProduct(slug: string): Promise<void> {
-  const local = await readLocalStore()
+  const local = await readLocalStore(true)
   if (local.productChanges) {
     delete local.productChanges[slug]
-    await writeLocalStore(local)
   }
+  local.productRestoredAt = local.productRestoredAt ?? {}
+  local.productRestoredAt[slug] = Date.now()
+  await writeLocalStore(local)
 
   if (await ensureMySqlSchema()) {
     try {
@@ -919,6 +1194,64 @@ export async function restoreBaseCatalogProduct(slug: string): Promise<void> {
 // PRODUCT CLICKS ANALYTICS (TRACKING, RANKING & RESET)
 // ============================================================================
 
+function toCompactClicksPayload(store: LocalStoreFile): CompactClicksCloudPayload {
+  const c: Record<string, [number, number, number, number, number]> = {}
+  for (const [slug, stat] of Object.entries(store.productClicks ?? {})) {
+    const total =
+      (stat.viewClicksLima || 0) +
+      (stat.viewClicksArequipa || 0) +
+      (stat.whatsappClicksLima || 0) +
+      (stat.whatsappClicksArequipa || 0)
+    if (total > 0) {
+      c[slug] = [
+        stat.viewClicksLima || 0,
+        stat.viewClicksArequipa || 0,
+        stat.whatsappClicksLima || 0,
+        stat.whatsappClicksArequipa || 0,
+        stat.lastClickedAt || 0,
+      ]
+    }
+  }
+  return {
+    r: store.clicksResetAt ?? 0,
+    s: store.slugResetAt ?? {},
+    c,
+  }
+}
+
+function fromCompactClicksPayload(
+  payload: CompactClicksCloudPayload | null
+): Partial<LocalStoreFile> | null {
+  if (!payload) return null
+  const productClicks: Record<string, ProductClickStats> = {}
+  for (const [slug, arr] of Object.entries(payload.c ?? {})) {
+    if (!Array.isArray(arr)) continue
+    productClicks[slug] = {
+      slug,
+      viewClicksLima: Number(arr[0] || 0),
+      viewClicksArequipa: Number(arr[1] || 0),
+      whatsappClicksLima: Number(arr[2] || 0),
+      whatsappClicksArequipa: Number(arr[3] || 0),
+      lastClickedAt: Number(arr[4] || 0),
+    }
+  }
+  return {
+    clicksResetAt: Number(payload.r || 0),
+    slugResetAt: payload.s ?? {},
+    productClicks,
+  }
+}
+
+function enqueueClickOp<T>(fn: () => Promise<T>): Promise<T> {
+  const prev = globalForStore.__daClicksQueue ?? Promise.resolve()
+  const next = prev.then(fn, fn)
+  globalForStore.__daClicksQueue = next.then(
+    () => undefined,
+    () => undefined
+  )
+  return next
+}
+
 export async function recordProductClick(
   slug: string,
   clickType: "view" | "whatsapp" = "view",
@@ -926,62 +1259,81 @@ export async function recordProductClick(
 ): Promise<void> {
   const cleanSlug = slug.trim()
   if (!cleanSlug) return
-  const now = Date.now()
 
-  // 1. Update local store
-  const local = await readLocalStore()
-  local.productClicks = local.productClicks ?? {}
-  const prev = local.productClicks[cleanSlug] ?? {
-    slug: cleanSlug,
-    viewClicksLima: 0,
-    viewClicksArequipa: 0,
-    whatsappClicksLima: 0,
-    whatsappClicksArequipa: 0,
-    lastClickedAt: 0,
-  }
+  await enqueueClickOp(async () => {
+    const now = Date.now()
 
-  if (clickType === "whatsapp") {
-    if (city === "arequipa") {
-      prev.whatsappClicksArequipa += 1
-    } else {
-      prev.whatsappClicksLima += 1
+    // 1. Load local store and merge latest cloud clicks state if in serverless mode
+    let local = await readDiskOrMemoryStore()
+    if (IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+      const cloudCompact =
+        await loadCompressedFromCloudKeys<CompactClicksCloudPayload>(
+          CLOUD_CLICKS_KEYS
+        )
+      local = mergeAdminState(local, fromCompactClicksPayload(cloudCompact))
     }
-  } else {
-    if (city === "arequipa") {
-      prev.viewClicksArequipa += 1
-    } else {
-      prev.viewClicksLima += 1
+
+    local.productClicks = local.productClicks ?? {}
+    const prev = local.productClicks[cleanSlug] ?? {
+      slug: cleanSlug,
+      viewClicksLima: 0,
+      viewClicksArequipa: 0,
+      whatsappClicksLima: 0,
+      whatsappClicksArequipa: 0,
+      lastClickedAt: 0,
     }
-  }
-  prev.lastClickedAt = now
-  local.productClicks[cleanSlug] = prev
-  await writeLocalStore(local)
 
-  // 2. Update MySQL if configured
-  if (await ensureMySqlSchema()) {
-    try {
-      const db = getPool()
-      const vLima = clickType === "view" && city === "lima" ? 1 : 0
-      const vAqp = clickType === "view" && city === "arequipa" ? 1 : 0
-      const wLima = clickType === "whatsapp" && city === "lima" ? 1 : 0
-      const wAqp = clickType === "whatsapp" && city === "arequipa" ? 1 : 0
+    if (clickType === "whatsapp") {
+      if (city === "arequipa") {
+        prev.whatsappClicksArequipa += 1
+      } else {
+        prev.whatsappClicksLima += 1
+      }
+    } else {
+      if (city === "arequipa") {
+        prev.viewClicksArequipa += 1
+      } else {
+        prev.viewClicksLima += 1
+      }
+    }
+    prev.lastClickedAt = now
+    local.productClicks[cleanSlug] = prev
 
-      await db.execute(
-        `INSERT INTO product_clicks (
-           slug, view_clicks_lima, view_clicks_arequipa, whatsapp_clicks_lima, whatsapp_clicks_arequipa, last_clicked_at
-         ) VALUES (?, ?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           view_clicks_lima = view_clicks_lima + VALUES(view_clicks_lima),
-           view_clicks_arequipa = view_clicks_arequipa + VALUES(view_clicks_arequipa),
-           whatsapp_clicks_lima = whatsapp_clicks_lima + VALUES(whatsapp_clicks_lima),
-           whatsapp_clicks_arequipa = whatsapp_clicks_arequipa + VALUES(whatsapp_clicks_arequipa),
-           last_clicked_at = VALUES(last_clicked_at)`,
-        [cleanSlug, vLima, vAqp, wLima, wAqp, now]
+    await writeDiskAndMemoryStore(local)
+    if (IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+      await saveCompressedToCloudKeys(
+        CLOUD_CLICKS_KEYS,
+        toCompactClicksPayload(local)
       )
-    } catch (err) {
-      console.error("[admin-db] Error recording product click in MySQL:", err)
+      globalForStore.__daLastCloudClicksSync = now
     }
-  }
+
+    // 2. Update MySQL if configured
+    if (await ensureMySqlSchema()) {
+      try {
+        const db = getPool()
+        const vLima = clickType === "view" && city === "lima" ? 1 : 0
+        const vAqp = clickType === "view" && city === "arequipa" ? 1 : 0
+        const wLima = clickType === "whatsapp" && city === "lima" ? 1 : 0
+        const wAqp = clickType === "whatsapp" && city === "arequipa" ? 1 : 0
+
+        await db.execute(
+          `INSERT INTO product_clicks (
+             slug, view_clicks_lima, view_clicks_arequipa, whatsapp_clicks_lima, whatsapp_clicks_arequipa, last_clicked_at
+           ) VALUES (?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             view_clicks_lima = view_clicks_lima + VALUES(view_clicks_lima),
+             view_clicks_arequipa = view_clicks_arequipa + VALUES(view_clicks_arequipa),
+             whatsapp_clicks_lima = whatsapp_clicks_lima + VALUES(whatsapp_clicks_lima),
+             whatsapp_clicks_arequipa = whatsapp_clicks_arequipa + VALUES(whatsapp_clicks_arequipa),
+             last_clicked_at = VALUES(last_clicked_at)`,
+          [cleanSlug, vLima, vAqp, wLima, wAqp, now]
+        )
+      } catch (err) {
+        console.error("[admin-db] Error recording product click in MySQL:", err)
+      }
+    }
+  })
 }
 
 export async function getProductClicksMap(): Promise<
@@ -1012,30 +1364,64 @@ export async function getProductClicksMap(): Promise<
     }
   }
 
-  const local = await readLocalStore()
+  let local = await readDiskOrMemoryStore()
+  if (IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+    const cloudCompact =
+      await loadCompressedFromCloudKeys<CompactClicksCloudPayload>(
+        CLOUD_CLICKS_KEYS
+      )
+    if (cloudCompact) {
+      local = mergeAdminState(local, fromCompactClicksPayload(cloudCompact))
+      await writeDiskAndMemoryStore(local)
+    }
+  }
   return local.productClicks ?? {}
 }
 
 export async function resetProductClicks(slug?: string): Promise<void> {
-  const local = await readLocalStore()
-  local.productClicks = local.productClicks ?? {}
-  if (!slug || slug === "all") {
-    local.productClicks = {}
-  } else {
-    delete local.productClicks[slug]
-  }
-  await writeLocalStore(local)
-
-  if (await ensureMySqlSchema()) {
-    try {
-      const db = getPool()
-      if (!slug || slug === "all") {
-        await db.execute("DELETE FROM product_clicks")
-      } else {
-        await db.execute("DELETE FROM product_clicks WHERE slug = ?", [slug])
-      }
-    } catch (err) {
-      console.error("[admin-db] Error resetting product_clicks in MySQL:", err)
+  await enqueueClickOp(async () => {
+    const now = Date.now()
+    let local = await readDiskOrMemoryStore()
+    if (IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+      const cloudCompact =
+        await loadCompressedFromCloudKeys<CompactClicksCloudPayload>(
+          CLOUD_CLICKS_KEYS
+        )
+      local = mergeAdminState(local, fromCompactClicksPayload(cloudCompact))
     }
-  }
+
+    local.productClicks = local.productClicks ?? {}
+    local.slugResetAt = local.slugResetAt ?? {}
+
+    if (!slug || slug === "all") {
+      local.productClicks = {}
+      local.clicksResetAt = now
+      local.slugResetAt = {}
+    } else {
+      delete local.productClicks[slug]
+      local.slugResetAt[slug] = now
+    }
+
+    await writeDiskAndMemoryStore(local)
+    if (IS_READONLY_SERVERLESS && !isMySqlConfigured()) {
+      await saveCompressedToCloudKeys(
+        CLOUD_CLICKS_KEYS,
+        toCompactClicksPayload(local)
+      )
+      globalForStore.__daLastCloudClicksSync = now
+    }
+
+    if (await ensureMySqlSchema()) {
+      try {
+        const db = getPool()
+        if (!slug || slug === "all") {
+          await db.execute("DELETE FROM product_clicks")
+        } else {
+          await db.execute("DELETE FROM product_clicks WHERE slug = ?", [slug])
+        }
+      } catch (err) {
+        console.error("[admin-db] Error resetting product_clicks in MySQL:", err)
+      }
+    }
+  })
 }

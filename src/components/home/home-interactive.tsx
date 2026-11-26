@@ -564,7 +564,7 @@ export function HomeInteractive({
                   className="hbr-catalog-card__link"
                   href={`/paquetes/${pkg.slug}`}
                   onClick={() =>
-                    trackProductClick(pkg.slug, "view", effectiveCity)
+                    trackProductClick(pkg.slug, "view", effectiveCity, "card")
                   }
                 >
                   <div className="hbr-catalog-card__image">

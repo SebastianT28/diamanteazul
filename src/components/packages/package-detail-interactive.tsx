@@ -50,7 +50,7 @@ export function PackageDetailInteractive({
     setSelectedThumbIdx(0)
     setSelectedSizeIdx(defaultSizeIdx)
     setLightboxOpen(false)
-    trackProductClick(pkg.slug, "view", city)
+    trackProductClick(pkg.slug, "view", city, "pdp")
   }, [pkg.slug, defaultSizeIdx, city])
 
   React.useEffect(() => {
@@ -420,6 +420,11 @@ export function PackageDetailInteractive({
                         href={`/paquetes/${model.slug}`}
                         className="hbr-models__link"
                         aria-current={isCurrent ? "page" : undefined}
+                        onClick={() => {
+                          if (!isCurrent) {
+                            trackProductClick(model.slug, "view", city, "card")
+                          }
+                        }}
                       >
                         <span className="hbr-models__image">
                           <span className="hbr-models__image-inner">

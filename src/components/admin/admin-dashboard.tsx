@@ -284,24 +284,29 @@ export function AdminDashboard() {
     }
   }, [showToast])
 
-  const fetchClicks = useCallback(async () => {
-    setLoadingClicks(true)
-    try {
-      const res = await fetch("/api/admin/clicks", { cache: "no-store" })
-      if (!res.ok) {
-        if (res.status === 401) setAuthenticated(false)
-        return
+  const fetchClicks = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoadingClicks(true)
+      try {
+        const res = await fetch("/api/admin/clicks", { cache: "no-store" })
+        if (!res.ok) {
+          if (res.status === 401) setAuthenticated(false)
+          return
+        }
+        const data = (await res.json()) as {
+          items: AdminClickStatItem[]
+        }
+        setClickItems(data.items ?? [])
+      } catch {
+        if (!silent) {
+          showToast("err", "No se pudieron cargar las estadísticas de clics.")
+        }
+      } finally {
+        if (!silent) setLoadingClicks(false)
       }
-      const data = (await res.json()) as {
-        items: AdminClickStatItem[]
-      }
-      setClickItems(data.items ?? [])
-    } catch {
-      showToast("err", "No se pudieron cargar las estadísticas de clics.")
-    } finally {
-      setLoadingClicks(false)
-    }
-  }, [showToast])
+    },
+    [showToast]
+  )
 
   useEffect(() => {
     let mounted = true
@@ -323,7 +328,7 @@ export function AdminDashboard() {
         setStorageMode(data.storageMode)
         setMysqlConfigured(data.mysqlConfigured)
         if (data.authenticated) {
-          await Promise.all([fetchSlots(), fetchProducts(), fetchClicks()])
+          await Promise.all([fetchSlots(), fetchProducts(), fetchClicks(false)])
         }
       } catch {
         // Ignore
@@ -337,21 +342,21 @@ export function AdminDashboard() {
   }, [fetchSlots, fetchProducts, fetchClicks])
 
   useEffect(() => {
-    if (!authenticated) return
+    if (!authenticated || resettingClicks) return
     const onFocus = () => {
-      fetchClicks()
+      fetchClicks(true)
     }
     window.addEventListener("focus", onFocus)
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") {
-        fetchClicks()
+        fetchClicks(true)
       }
     }, 5000)
     return () => {
       window.removeEventListener("focus", onFocus)
       window.clearInterval(interval)
     }
-  }, [authenticated, fetchClicks])
+  }, [authenticated, resettingClicks, fetchClicks])
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
