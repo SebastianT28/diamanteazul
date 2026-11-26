@@ -466,7 +466,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Mega Circuito Encanto",
     category: "castillos-toboganes",
     collectionName: "Dreamy Collection",
-    subtitle: "Dreamy Collection · Circuito de 10 metros en tonos pastel",
+    subtitle: "Dreamy Collection · Circuito de obstáculos y tobogán en tonos pastel",
     description:
       "Un increíble circuito inflable que combina obstáculos, túneles, escalada y gran resbalón para una experiencia completa de diversión. Sus colores pastel y diseño de castillo lo hacen perfecto para transformar cualquier evento en una aventura mágica.",
     image: "/images/catalogo/mega-circuito-encanto.webp",
@@ -519,7 +519,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Castillo Inflable con Piscina de Pelotas",
     category: "castillos-toboganes",
     collectionName: "White Trend",
-    subtitle: "White Trend · Castillo blanco 3×3m + globos y pelotas",
+    subtitle: "White Trend · Castillo blanco elegante con piscina de pelotas",
     description:
       "Nuestro Castillo Inflable blanco tiene múltiples usos. Se puede utilizar como área de juegos para niños, decoración de fiestas temáticas, sesión de fotos, revelación de género, bodas, fiestas y eventos corporativos para proporcionar diversión y emoción sin fin. Incluye pelotas de colores y una pequeña decoración con globos según la temática de la fiesta.",
     image: "/images/catalogo/castillo-con-piscina-de-pelotas.webp",
@@ -571,7 +571,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Castillo Blanco con Tobogán",
     category: "castillos-toboganes",
     collectionName: "White Trend",
-    subtitle: "White Trend · Castillo blanco 3.5×3.5m + decoración globos",
+    subtitle: "White Trend · Castillo blanco elegante con tobogán integrado",
     description:
       "Nuestro divertido Castillo de rebote inflable blanco para niños brinda entretenimiento sin fin y fomenta el juego imaginativo activo para niños (edad sugerida: de 0 a 6 años). ¡El tobogán solo aumenta la diversión! Incluye una pequeña decoración con globos según la temática de la fiesta.",
     image: "/images/catalogo/castillo-blanco-con-tobogan.webp",
@@ -623,7 +623,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Inflable Obstáculos Blanco",
     category: "castillos-toboganes",
     collectionName: "White Trend",
-    subtitle: "White Trend · Circuito gigante 9×4m con piscina de pelotas",
+    subtitle: "White Trend · Circuito de obstáculos blanco con piscina de pelotas",
     description:
       "Diversión asegurada con este inflable gigante que combina escalada, recorrido de obstáculos y un súper resbalón que termina en piscina de pelotas. Ideal para niños con mucha energía, perfecto para cumpleaños, eventos y todo tipo de celebraciones.",
     image: "/images/catalogo/inflable-obstaculos-blanco.webp",
@@ -727,7 +727,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Bloques a tu Medida",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Tobogán y obstáculos tipo bloques (5×5m)",
+    subtitle: "Diversión a Color · Tobogán y circuito de obstáculos tipo bloques",
     description:
       "Nuestro inflable de bloques es perfecto para adaptarse a espacios grandes y pequeños, tiene un divertido tobogán y zona de obstáculos que harán más divertido tu evento. Recomendado para niños de 0 a 7 años.",
     image: "/images/catalogo/bloques-a-tu-medida.webp",
@@ -779,7 +779,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Super Slide",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Tobogán clásico de 7 metros de largo",
+    subtitle: "Diversión a Color · Tobogán inflable clásico de gran deslizamiento",
     description:
       "Sus invitados experimentarán la emoción mientras se deslizan por 5 metros de diversión inflable. Este tobogán inflable clásico es ideal para niños de hasta 12 años. Cuenta con una escalera para subir a la cima y una cubierta de malla superior para mantener seguros a los invitados.",
     image: "/images/catalogo/super-slide.webp",
@@ -831,7 +831,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Tobogán Inflable con Obstáculos Divertidos",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Tobogán + circuito de túneles (6×5.5m)",
+    subtitle: "Diversión a Color · Tobogán con circuito de túneles y obstáculos",
     description:
       "Nuestro Tobogán Inflable es perfecto para tu fiesta ya que es versátil para cada edad hasta los 12 años; tiene un divertido tobogán que lleva a la zona de obstáculos y túneles en donde se divierten los más pequeños también.",
     image: "/images/catalogo/tobogan-inflable-con-obstaculos.webp",
@@ -883,7 +883,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Tobogán Inflable de Bloques",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Doble carril, trampolín y bloques (7×5.5m)",
+    subtitle: "Diversión a Color · Doble carril, área de salto y diseño de bloques",
     description:
       "Nuestro Tobogán inflable de bloques cuenta con obstáculos divertidos, escalones, trampolín y colores brillantes. Definitivamente, un inflable novedoso que será la atracción principal de tu fiesta.",
     image: "/images/catalogo/tobogan-inflable-de-bloques.webp",
@@ -935,7 +935,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Lego en Acción",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Circuito gigante 9×4m para 0 a 13 años",
+    subtitle: "Diversión a Color · Circuito interactivo de obstáculos estilo bloques",
     description:
       "Nuestro inflable Lego en Acción es perfecto para niños de 0 a 13 años; tiene zona de obstáculos, túneles, toboganes y más en una estructura de 9 metros de largo. ¡Diversión asegurada!",
     image: "/images/catalogo/lego-en-accion.webp",
@@ -987,7 +987,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Carrera de Obstáculos",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Pista de obstáculos y tobogán (9×3m)",
+    subtitle: "Diversión a Color · Pista de obstáculos con escalada y tobogán",
     description:
       "Nuestro Inflable «Carrera de Obstáculos» es la atracción perfecta para que los niños disfruten al máximo. Con un diseño divertido y seguro de 9 metros de largo, es ideal para niños de 0 a 10 años y convierte cualquier evento en una experiencia inolvidable.",
     image: "/images/catalogo/carrera-de-obstaculos.webp",
@@ -1039,7 +1039,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Gran Carrera de Obstáculos",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Circuito extremo de 15 metros (Niños y adultos)",
+    subtitle: "Diversión a Color · Circuito extremo de competencia para niños y adultos",
     description:
       "¡El inflable perfecto para la competición y diversión en tus eventos! Con 15 metros de largo, cuenta con varios desafíos como zona de obstáculos, muro de escalada, túneles y tobogán. ¡Diversión garantizada para niños y adultos!",
     image: "/images/catalogo/gran-carrera-de-obstaculos.webp",
@@ -1092,7 +1092,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Mega Slide",
     category: "castillos-toboganes",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Doble tobogán de 7m de alto en 3 tiempos",
+    subtitle: "Diversión a Color · Doble tobogán gigante de caída en tres tiempos",
     description:
       "Lindo inflable de colores de gran formato: tiene dos toboganes llenos de diversión con caída emocionante en tres tiempos. Diseñado con máxima resistencia tanto para niños como para adultos.",
     image: "/images/catalogo/mega-slide.webp",
@@ -1149,7 +1149,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Aquaroller",
     category: "inflables-acuaticos",
     collectionName: "Diversión Acuática",
-    subtitle: "Diversión Acuática · Piscina 6×6m + 2 rodillos gigantes + Staff",
+    subtitle: "Diversión Acuática · Piscina inflable con rodillos acuáticos gigantes",
     description:
       "El Aquaroller es una divertida atracción inflable en donde niños o adultos giran dentro del rodillo transparente sobre nuestra piscina inflable de 6×6 metros. Sin duda una experiencia refrescante que no olvidarán.",
     image: "/images/catalogo/aquaroller.webp",
@@ -1202,7 +1202,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Super Cañón de Espuma",
     category: "inflables-acuaticos",
     collectionName: "Diversión Acuática",
-    subtitle: "Diversión Acuática · Fiesta de espuma segura + Operador a cargo",
+    subtitle: "Diversión Acuática · Fiesta de espuma refrescante y segura",
     description:
       "¡Nuestro cañón de espuma es la solución perfecta! Imagina un mar de espuma suave y esponjosa donde los niños puedan jugar, saltar y reír sin parar. La espuma que produce nuestra máquina es completamente segura para los niños. Ideal para cumpleaños, fiestas temáticas y eventos infantiles.",
     image: "/images/catalogo/canon-de-espuma.webp",
@@ -1253,7 +1253,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Piscina con Botes Flotantes",
     category: "inflables-acuaticos",
     collectionName: "Diversión Acuática",
-    subtitle: "Diversión Acuática · Piscina inflable + 4 botes (niños y adultos)",
+    subtitle: "Diversión Acuática · Piscina inflable con botes a pedal para niños y adultos",
     description:
       "Diversión acuática para grandes y pequeños. Nuestra piscina inflable incluye 4 botes a pedal manual (2 botes para adultos y 2 botes para niños). Perfecta para cumpleaños, ferias, festivales y todo tipo de eventos donde quieras sorprender a tus invitados con una experiencia única y refrescante.",
     image: "/images/catalogo/piscina-con-botes.webp",
@@ -1308,7 +1308,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Bubble House",
     category: "juegos-entretenimiento",
     collectionName: "Dreamy Collection",
-    subtitle: "Dreamy / White Trend · Burbuja con globos en movimiento + arco",
+    subtitle: "Dreamy / White Trend · Domo transparente con globos en movimiento",
     description:
       "Nuestra Bubble House es una burbuja inflable transparente en donde los invitados (niños y adultos) pueden jugar y divertirse con los globos que están en constante movimiento dentro de ella. ¡A los niños les encanta! Disponible en medidas de 3 metros y 4 metros.",
     image: "/images/catalogo/bubble-house.webp",
@@ -1361,7 +1361,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Soft Play",
     category: "juegos-entretenimiento",
     collectionName: "Dreamy Collection",
-    subtitle: "Dreamy / White Trend · Zona de estimulación temprana 3×4m",
+    subtitle: "Dreamy / White Trend · Circuito acolchado de estimulación temprana",
     description:
       "Nuestro hermoso Soft Play está diseñado especialmente para los más pequeños, brindándoles un espacio seguro, colorido y lleno de diversión. Perfecto para estimular la imaginación y la motricidad mientras juegan en un circuito acolchado de 3m × 4m.",
     image: "/images/catalogo/soft-play.webp",
@@ -1412,7 +1412,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Piscina Inflable de Pelotas",
     category: "juegos-entretenimiento",
     collectionName: "Dreamy Collection",
-    subtitle: "Dreamy / White Trend · Piscina 3×3m segura y amplia",
+    subtitle: "Dreamy / White Trend · Piscina acolchada de pelotas en tonos suaves",
     description:
       "La opción perfecta para que los niños disfruten de la diversión en un espacio seguro y amplio. Con su tamaño ideal de 3 × 3 metros, es perfecta para cumpleaños, reuniones y todo tipo de eventos infantiles.",
     image: "/images/catalogo/piscina-inflable-de-pelotas.webp",
@@ -1463,7 +1463,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Bumper Balls",
     category: "juegos-entretenimiento",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Pack de 2 pelotas inflables gigantes",
+    subtitle: "Diversión a Color · Esferas inflables gigantes para chocar y rodar",
     description:
       "¡Diversión, adrenalina y risas aseguradas! Con nuestras Bumper Balls los niños y adultos pueden correr, chocar y rodar de manera segura dentro de estas pelotas inflables gigantes. Ideales para juegos en grupo, competencias y dinámicas divertidas en cualquier evento.",
     image: "/images/catalogo/bumper-balls.webp",
@@ -1514,7 +1514,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Reloj Demoledor",
     category: "juegos-entretenimiento",
     collectionName: "Diversión a Color",
-    subtitle: "Diversión a Color · Juego mecánico giratorio de 5m de diámetro",
+    subtitle: "Diversión a Color · Juego mecánico giratorio de salto y equilibrio",
     description:
       "¡La competencia más divertida y llena de adrenalina! Este inflable de gran tamaño (5 metros de diámetro) pondrá a prueba la habilidad y agilidad de todos los participantes, que deberán esquivar y saltar para no ser derribados por el brazo giratorio. Ideal para fiestas, ferias y eventos.",
     image: "/images/catalogo/reloj-demoledor-01.webp",
@@ -1570,7 +1570,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Camas Saltarinas",
     category: "juegos-entretenimiento",
     collectionName: "Diversión Clásica",
-    subtitle: "Disponibles en 2.4m, 3.05m y 4m de diámetro con malla de seguridad",
+    subtitle: "Trampolín circular con malla perimetral de seguridad",
     description:
       "La atracción clásica que nunca puede faltar en una fiesta infantil. Nuestras camas saltarinas ofrecen horas de diversión, risas y movimiento en un espacio seguro y resistente con malla protectora perimetral. Disponibles en 3 tamaños para adaptarse a cada tipo de evento y espacio.",
     image: "/images/catalogo/camas-saltarinas.webp",
@@ -1627,7 +1627,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Plataforma 360° (Video Booth 360°)",
     category: "sesiones-fotos",
     collectionName: "Diamante Azul Luxury",
-    subtitle: "Luxury & Recuerdos · Videos HD Slow Motion + Accesorios + Staff",
+    subtitle: "Luxury & Recuerdos · Plataforma giratoria de videos HD en cámara lenta",
     description:
       "Una experiencia inmersiva que convierte cada celebración en un recuerdo inolvidable. Nuestra Plataforma Giratoria 360° graba videos instantáneos con efecto slow motion, cámara lenta y reversa, listos para compartir al instante por WhatsApp o redes sociales con el marco y música personalizada de tu evento.",
     image: "/images/catalogo/plataforma-360.webp",
@@ -1680,7 +1680,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Domo Overhead 360",
     category: "sesiones-fotos",
     collectionName: "Diamante Azul Luxury",
-    subtitle: "Diamante Azul Luxury · Estructura geodésica LED + Video 360° (5 hrs)",
+    subtitle: "Diamante Azul Luxury · Estructura geodésica iluminada con video 360°",
     description:
       "Un espacio que envuelve a tus invitados en una experiencia completamente diferente. El Domo Overhead 360 combina una imponente estructura geodésica con barras de iluminación LED y plataforma de video 360° inmersivo. Ideal para bodas, activaciones de marca, 15 años y eventos corporativos exclusivos.",
     image: "/images/catalogo/domo-overhead-360.webp",
@@ -1733,7 +1733,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Estación de Fotos",
     category: "sesiones-fotos",
     collectionName: "Diamante Azul Luxury",
-    subtitle: "Diamante Azul Luxury · Cámara profesional + Fotos impresas (3 hrs)",
+    subtitle: "Diamante Azul Luxury · Cabina fotográfica con iluminación profesional",
     description:
       "Una experiencia profesional que captura la esencia y elegancia de cada invitado en alta resolución. Nuestra Estación de Fotos cuenta con cámara profesional, aro de luz LED, fotografías impresas al instante, alfombrado elegante y divertidos accesorios temáticos.",
     image: "/images/catalogo/estacion-de-fotos.webp",
@@ -1788,7 +1788,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Sillas Metálicas Tapizadas",
     category: "complementos-extras",
     collectionName: "Complementos y Extras",
-    subtitle: "Mobiliario para Eventos · Asiento tapizado de alto tránsito (94 cm)",
+    subtitle: "Mobiliario para Eventos · Sillas metálicas con asiento tapizado acolchado",
     description:
       "Servicio de alquiler de Sillas Metálicas especiales para darle un toque elegante y cómodo a tus reuniones al aire libre o en interior. Cuentan con estructura resistente y asiento tapizado acolchado especial para alto tránsito (altura de la silla: 94 cm).",
     image: "/images/catalogo/sillas-metalicas.webp",
@@ -1839,7 +1839,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Generador Eléctrico 8500W",
     category: "complementos-extras",
     collectionName: "Complementos y Extras",
-    subtitle: "Energía Autónoma · Potencia 8500 Watts + Gasolina × 5 horas",
+    subtitle: "Energía Autónoma · Equipo electrógeno portátil para eventos sin punto de luz",
     description:
       "Generador eléctrico de alta potencia (8500 watts) ideal para alimentar inflables grandes o múltiples turbinas en parques, clubes, playas o locales abiertos donde no se dispone de punto de electricidad cercano. Incluye gasolina para 5 horas continuas de evento.",
     image: "/images/catalogo/generador-electrico-8500w.webp",
@@ -1890,7 +1890,7 @@ const RAW_PRODUCTS: RawProductSeed[] = [
     title: "Generador Eléctrico 3600W",
     category: "complementos-extras",
     collectionName: "Complementos y Extras",
-    subtitle: "Energía Autónoma · Potencia 3600 Watts + Gasolina × 5 horas",
+    subtitle: "Energía Autónoma · Equipo electrógeno compacto para inflables en exteriores",
     description:
       "Generador eléctrico práctico de 3600 watts de potencia para eventos en exteriores o jardines sin tomacorriente cercano. Ideal para alimentar una turbina de inflable o estación recreativa con total autonomía. Incluye gasolina por 5 horas.",
     image: "/images/catalogo/generador-electrico-3600w.webp",

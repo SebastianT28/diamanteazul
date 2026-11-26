@@ -587,36 +587,6 @@ export function HomeInteractive({
                       <h3 className="hbr-catalog-card__name">{pkg.title}</h3>
                     </div>
                     <p className="hbr-catalog-card__subtitle">{pkg.subtitle}</p>
-                    <div className="hbr-catalog-card__sizes">
-                      <span className="hbr-catalog-card__size-group">
-                        <span className="hbr-catalog-card__sizes-label">
-                          {pkg.cardTagsLabel}
-                        </span>
-                        <span className="hbr-catalog-card__size">
-                          {pkg.cardTags[0]}
-                        </span>
-                      </span>
-                      {pkg.cardTags[1] && (
-                        <span className="hbr-catalog-card__size-group">
-                          <span className="hbr-catalog-card__sizes-label">
-                            Alquiler
-                          </span>
-                          <span className="hbr-catalog-card__size">
-                            {pkg.cardTags[1]}
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="hbr-catalog-card__bottom">
-                      <div className="product-price-and-shipping">
-                        <span className="price">{pkg.price}</span>
-                        {pkg.regularPrice && (
-                          <span className="regular-price">
-                            {pkg.regularPrice}
-                          </span>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </Link>
               </article>

@@ -2013,14 +2013,13 @@ a.hbr-mnav__help {
 }
 
 .hbr-catalog-card__body {
-  padding: 19px 20px 21px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: 16px;
-  row-gap: 8px;
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   flex: 1;
   border-top: 1px solid #F1F5F8;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .hbr-catalog-card__title-row {
