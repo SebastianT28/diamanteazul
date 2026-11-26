@@ -3,6 +3,7 @@ import { getAuthenticatedAdmin } from "@/lib/admin-auth"
 import {
   getEffectiveCatalogPackages,
   getProductClicksMap,
+  recordProductClick,
   resetProductClicks,
 } from "@/lib/admin-db"
 
@@ -72,8 +73,36 @@ export async function GET() {
 
   return NextResponse.json(
     { items },
-    { headers: { "Cache-Control": "no-store" } }
+    { headers: { "Cache-Control": "no-store, max-age=0" } }
   )
+}
+
+// Public POST on the same route bundle so serverless environments (e.g. Vercel preview before MySQL is connected) share the same instance
+export async function POST(req: NextRequest) {
+  try {
+    const body = (await req.json()) as {
+      slug?: string
+      type?: "view" | "whatsapp"
+      city?: "lima" | "arequipa"
+    }
+
+    const slug = (body.slug ?? "").trim()
+    if (!slug) {
+      return NextResponse.json({ error: "Slug requerido" }, { status: 400 })
+    }
+
+    const clickType = body.type === "whatsapp" ? "whatsapp" : "view"
+    const city = body.city === "arequipa" ? "arequipa" : "lima"
+
+    await recordProductClick(slug, clickType, city)
+    return NextResponse.json(
+      { ok: true, slug, type: clickType, city },
+      { headers: { "Cache-Control": "no-store" } }
+    )
+  } catch (err) {
+    console.error("[api/admin/clicks POST] Error:", err)
+    return NextResponse.json({ ok: false }, { status: 500 })
+  }
 }
 
 export async function DELETE(req: NextRequest) {

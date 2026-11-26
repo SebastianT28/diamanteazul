@@ -336,6 +336,23 @@ export function AdminDashboard() {
     }
   }, [fetchSlots, fetchProducts, fetchClicks])
 
+  useEffect(() => {
+    if (!authenticated) return
+    const onFocus = () => {
+      fetchClicks()
+    }
+    window.addEventListener("focus", onFocus)
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchClicks()
+      }
+    }, 5000)
+    return () => {
+      window.removeEventListener("focus", onFocus)
+      window.clearInterval(interval)
+    }
+  }, [authenticated, fetchClicks])
+
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoginError("")

@@ -1,4 +1,5 @@
 import fs from "fs/promises"
+import os from "os"
 import path from "path"
 import mysql from "mysql2/promise"
 import {
@@ -68,8 +69,21 @@ interface LocalStoreFile {
   productClicks?: Record<string, ProductClickStats>
 }
 
-const LOCAL_STORE_PATH = path.join(process.cwd(), "data", "admin-store.json")
-const LOCAL_BACKUP_DIR = path.join(process.cwd(), "data", "original-images")
+const IS_READONLY_SERVERLESS = Boolean(
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+)
+
+const LOCAL_STORE_PATH = IS_READONLY_SERVERLESS
+  ? path.join(os.tmpdir(), "da-admin-store.json")
+  : path.join(process.cwd(), "data", "admin-store.json")
+
+const LOCAL_BACKUP_DIR = IS_READONLY_SERVERLESS
+  ? path.join(os.tmpdir(), "da-original-images")
+  : path.join(process.cwd(), "data", "original-images")
+
+const globalForStore = globalThis as unknown as {
+  __daLocalStoreCache?: LocalStoreFile
+}
 
 let pool: mysql.Pool | null = null
 let schemaInitialized = false
@@ -168,7 +182,7 @@ async function readLocalStore(): Promise<LocalStoreFile> {
   try {
     const raw = await fs.readFile(LOCAL_STORE_PATH, "utf-8")
     const parsed = JSON.parse(raw) as Partial<LocalStoreFile>
-    return {
+    const result: LocalStoreFile = {
       adminUser: parsed.adminUser ?? {
         username: DEFAULT_ADMIN_USERNAME,
         passwordHash: DEFAULT_ADMIN_PASSWORD_HASH,
@@ -178,7 +192,12 @@ async function readLocalStore(): Promise<LocalStoreFile> {
       productChanges: parsed.productChanges ?? {},
       productClicks: parsed.productClicks ?? {},
     }
+    globalForStore.__daLocalStoreCache = result
+    return result
   } catch {
+    if (globalForStore.__daLocalStoreCache) {
+      return globalForStore.__daLocalStoreCache
+    }
     return {
       adminUser: {
         username: DEFAULT_ADMIN_USERNAME,
@@ -193,8 +212,19 @@ async function readLocalStore(): Promise<LocalStoreFile> {
 }
 
 async function writeLocalStore(store: LocalStoreFile): Promise<void> {
-  await fs.mkdir(path.dirname(LOCAL_STORE_PATH), { recursive: true })
-  await fs.writeFile(LOCAL_STORE_PATH, JSON.stringify(store, null, 2), "utf-8")
+  globalForStore.__daLocalStoreCache = store
+  try {
+    await fs.mkdir(path.dirname(LOCAL_STORE_PATH), { recursive: true })
+    await fs.writeFile(LOCAL_STORE_PATH, JSON.stringify(store, null, 2), "utf-8")
+  } catch {
+    // Fallback to os.tmpdir() if process.cwd() is read-only
+    try {
+      const tmpPath = path.join(os.tmpdir(), "da-admin-store.json")
+      await fs.writeFile(tmpPath, JSON.stringify(store, null, 2), "utf-8")
+    } catch {
+      // Keep in globalForStore.__daLocalStoreCache
+    }
+  }
 }
 
 export async function getAdminUser(): Promise<{

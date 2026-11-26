@@ -2,7 +2,8 @@
 
 import type { CitySlug } from "@/lib/city-context"
 
-const COOLDOWN_MS = 25000 // 25s deduplication per product in same session so card click + page mount count as 1 click
+// 2.5s cooldown only to avoid double-counting when clicking a Home card and immediately mounting the PDP 150ms later
+const COOLDOWN_MS = 2500
 
 export function trackProductClick(
   slug: string,
@@ -26,7 +27,17 @@ export function trackProductClick(
   const payload = JSON.stringify({ slug, type, city })
 
   try {
-    fetch("/api/products/clicks", {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: "application/json" })
+      navigator.sendBeacon("/api/admin/clicks", blob)
+      return
+    }
+  } catch {
+    // Fallback to fetch
+  }
+
+  try {
+    fetch("/api/admin/clicks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: payload,
