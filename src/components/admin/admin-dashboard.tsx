@@ -285,8 +285,9 @@ export function AdminDashboard() {
   }, [showToast])
 
   const fetchClicks = useCallback(
-    async (silent = false) => {
-      if (!silent) setLoadingClicks(true)
+    async (silent?: boolean | unknown) => {
+      const isSilent = silent === true
+      if (!isSilent) setLoadingClicks(true)
       try {
         const res = await fetch("/api/admin/clicks", { cache: "no-store" })
         if (!res.ok) {
@@ -298,11 +299,11 @@ export function AdminDashboard() {
         }
         setClickItems(data.items ?? [])
       } catch {
-        if (!silent) {
+        if (!isSilent) {
           showToast("err", "No se pudieron cargar las estadísticas de clics.")
         }
       } finally {
-        if (!silent) setLoadingClicks(false)
+        if (!isSilent) setLoadingClicks(false)
       }
     },
     [showToast]
