@@ -25,7 +25,25 @@ interface EnrichedSlot extends EditableImageSlot {
   previewUrl: string
 }
 
-type AdminMainModule = "images" | "products"
+type AdminMainModule = "images" | "products" | "analytics"
+
+interface AdminClickStatItem {
+  slug: string
+  title: string
+  category: ProductCategorySlug
+  categoryName: string
+  collectionName: string
+  image: string
+  price: string
+  viewClicksLima: number
+  viewClicksArequipa: number
+  totalViewClicks: number
+  whatsappClicksLima: number
+  whatsappClicksArequipa: number
+  totalWhatsappClicks: number
+  totalClicks: number
+  lastClickedAt: number
+}
 
 interface ProductFormState {
   isEditing: boolean
@@ -184,6 +202,19 @@ export function AdminDashboard() {
   const [productToDelete, setProductToDelete] =
     useState<InflatablePackage | null>(null)
 
+  // Click Analytics state
+  const [clickItems, setClickItems] = useState<AdminClickStatItem[]>([])
+  const [loadingClicks, setLoadingClicks] = useState(false)
+  const [clickCityFilter, setClickCityFilter] = useState<
+    "all" | "lima" | "arequipa"
+  >("all")
+  const [clickCategoryFilter, setClickCategoryFilter] = useState<
+    ProductCategorySlug | "all"
+  >("all")
+  const [clickSearchQuery, setClickSearchQuery] = useState("")
+  const [confirmResetAllClicks, setConfirmResetAllClicks] = useState(false)
+  const [resettingClicks, setResettingClicks] = useState(false)
+
   // Toast notification
   const [toastMessage, setToastMessage] = useState<{
     type: "ok" | "err"
@@ -253,6 +284,25 @@ export function AdminDashboard() {
     }
   }, [showToast])
 
+  const fetchClicks = useCallback(async () => {
+    setLoadingClicks(true)
+    try {
+      const res = await fetch("/api/admin/clicks", { cache: "no-store" })
+      if (!res.ok) {
+        if (res.status === 401) setAuthenticated(false)
+        return
+      }
+      const data = (await res.json()) as {
+        items: AdminClickStatItem[]
+      }
+      setClickItems(data.items ?? [])
+    } catch {
+      showToast("err", "No se pudieron cargar las estadísticas de clics.")
+    } finally {
+      setLoadingClicks(false)
+    }
+  }, [showToast])
+
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -273,7 +323,7 @@ export function AdminDashboard() {
         setStorageMode(data.storageMode)
         setMysqlConfigured(data.mysqlConfigured)
         if (data.authenticated) {
-          await Promise.all([fetchSlots(), fetchProducts()])
+          await Promise.all([fetchSlots(), fetchProducts(), fetchClicks()])
         }
       } catch {
         // Ignore
@@ -284,7 +334,7 @@ export function AdminDashboard() {
     return () => {
       mounted = false
     }
-  }, [fetchSlots, fetchProducts])
+  }, [fetchSlots, fetchProducts, fetchClicks])
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -315,7 +365,7 @@ export function AdminDashboard() {
       setNewUsername(data.username || loginUser)
       if (data.storageMode) setStorageMode(data.storageMode)
       setLoginPass("")
-      await Promise.all([fetchSlots(), fetchProducts()])
+      await Promise.all([fetchSlots(), fetchProducts(), fetchClicks()])
     } catch {
       setLoginError("No se pudo conectar con el servidor.")
     } finally {
@@ -589,6 +639,32 @@ export function AdminDashboard() {
     }
   }
 
+  const handleResetClicks = async (targetSlug: string = "all") => {
+    setResettingClicks(true)
+    try {
+      const res = await fetch(
+        `/api/admin/clicks?slug=${encodeURIComponent(targetSlug)}`,
+        { method: "DELETE" }
+      )
+      if (!res.ok) {
+        showToast("err", "No se pudieron reiniciar los contadores.")
+        return
+      }
+      setConfirmResetAllClicks(false)
+      await fetchClicks()
+      showToast(
+        "ok",
+        targetSlug === "all"
+          ? "Todos los contadores de clics fueron reiniciados a 0."
+          : "Contador del producto reiniciado a 0."
+      )
+    } catch {
+      showToast("err", "Error de red al reiniciar contadores.")
+    } finally {
+      setResettingClicks(false)
+    }
+  }
+
   const handleChangeCredentials = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSecError("")
@@ -671,6 +747,117 @@ export function AdminDashboard() {
     () => slots.filter((s) => s.isOverridden).length,
     [slots]
   )
+
+  const clicksBySlug = useMemo(() => {
+    const map: Record<string, AdminClickStatItem> = {}
+    for (const item of clickItems) {
+      map[item.slug] = item
+    }
+    return map
+  }, [clickItems])
+
+  const rankedAnalyticsItems = useMemo(() => {
+    const q = clickSearchQuery.trim().toLowerCase()
+    const mapped = clickItems
+      .filter((item) => {
+        if (
+          clickCategoryFilter !== "all" &&
+          item.category !== clickCategoryFilter
+        ) {
+          return false
+        }
+        if (!q) return true
+        return (
+          item.title.toLowerCase().includes(q) ||
+          item.categoryName.toLowerCase().includes(q)
+        )
+      })
+      .map((item) => {
+        const viewCount =
+          clickCityFilter === "lima"
+            ? item.viewClicksLima
+            : clickCityFilter === "arequipa"
+              ? item.viewClicksArequipa
+              : item.totalViewClicks
+        const waCount =
+          clickCityFilter === "lima"
+            ? item.whatsappClicksLima
+            : clickCityFilter === "arequipa"
+              ? item.whatsappClicksArequipa
+              : item.totalWhatsappClicks
+        return {
+          ...item,
+          activeViewClicks: viewCount,
+          activeWaClicks: waCount,
+        }
+      })
+
+    mapped.sort((a, b) => {
+      if (b.activeViewClicks !== a.activeViewClicks) {
+        return b.activeViewClicks - a.activeViewClicks
+      }
+      return b.activeWaClicks - a.activeWaClicks
+    })
+    return mapped
+  }, [clickItems, clickCategoryFilter, clickCityFilter, clickSearchQuery])
+
+  const analyticsSummary = useMemo(() => {
+    let totalViews = 0
+    let viewsLima = 0
+    let viewsAqp = 0
+    let totalWa = 0
+    const categoryTotals: Record<string, { label: string; clicks: number }> = {}
+
+    for (const item of clickItems) {
+      viewsLima += item.viewClicksLima
+      viewsAqp += item.viewClicksArequipa
+      const activeViews =
+        clickCityFilter === "lima"
+          ? item.viewClicksLima
+          : clickCityFilter === "arequipa"
+            ? item.viewClicksArequipa
+            : item.totalViewClicks
+      const activeWa =
+        clickCityFilter === "lima"
+          ? item.whatsappClicksLima
+          : clickCityFilter === "arequipa"
+            ? item.whatsappClicksArequipa
+            : item.totalWhatsappClicks
+
+      totalViews += activeViews
+      totalWa += activeWa
+
+      if (!categoryTotals[item.category]) {
+        categoryTotals[item.category] = {
+          label: item.categoryName,
+          clicks: 0,
+        }
+      }
+      categoryTotals[item.category].clicks += activeViews
+    }
+
+    const topProduct =
+      rankedAnalyticsItems.length > 0 &&
+      rankedAnalyticsItems[0].activeViewClicks > 0
+        ? rankedAnalyticsItems[0]
+        : null
+
+    let topCategory: { label: string; clicks: number } | null = null
+    for (const cat of Object.values(categoryTotals)) {
+      if (cat.clicks > 0 && (!topCategory || cat.clicks > topCategory.clicks)) {
+        topCategory = cat
+      }
+    }
+
+    return {
+      totalViews,
+      viewsLima,
+      viewsAqp,
+      totalWa,
+      topProduct,
+      topCategory,
+    }
+  }, [clickItems, clickCityFilter, rankedAnalyticsItems])
 
   if (checkingAuth) {
     return (
@@ -887,6 +1074,22 @@ export function AdminDashboard() {
               }`}
             >
               🎪 Productos del Catálogo ({products.length})
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeModule === "analytics"}
+              onClick={() => {
+                setActiveModule("analytics")
+                fetchClicks()
+              }}
+              className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeModule === "analytics"
+                  ? "bg-[#2D3440] text-white shadow-sm"
+                  : "text-[#5A6577] hover:text-[#2D3440]"
+              }`}
+            >
+              📊 Más Clickeados ({analyticsSummary.totalViews})
             </button>
           </div>
 
@@ -1190,6 +1393,12 @@ export function AdminDashboard() {
                         </p>
 
                         <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
+                          <span className="px-2.5 py-1 rounded-lg bg-[#EBF5FA] text-[#2B8EAD] font-semibold">
+                            👆 {clicksBySlug[pkg.slug]?.totalViewClicks ?? 0}{" "}
+                            {(clicksBySlug[pkg.slug]?.totalViewClicks ?? 0) === 1
+                              ? "clic"
+                              : "clics"}
+                          </span>
                           <span className="px-2.5 py-1 rounded-lg bg-[#F5F8FA] text-[#5A6577] font-medium">
                             <strong>Medidas:</strong> {pkg.cardTags[0]}
                           </span>
@@ -1289,6 +1498,376 @@ export function AdminDashboard() {
               </div>
             </section>
           )}
+        </div>
+      )}
+
+      {/* ====================================================================
+          MODULE 3: RANKING DE INFLABLES MÁS CLICKEADOS / ESTADÍSTICAS
+          ==================================================================== */}
+      {activeModule === "analytics" && (
+        <div className="max-w-[1380px] mx-auto px-5 sm:px-8 pt-7">
+          {/* 4 Summary KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-[24px] p-5 border border-[#E2ECF2] shadow-xs">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#6C7686]">
+                Total de Clics en Inflables
+              </span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-[#2D3440]">
+                  {analyticsSummary.totalViews}
+                </span>
+                <span className="text-xs font-medium text-[#2B8EAD]">
+                  clics registrados
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-[#6C7686]">
+                Lima: <strong>{analyticsSummary.viewsLima}</strong> · Arequipa:{" "}
+                <strong>{analyticsSummary.viewsAqp}</strong>
+              </p>
+            </div>
+
+            <div className="bg-white rounded-[24px] p-5 border border-[#E2ECF2] shadow-xs">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#6C7686]">
+                🥇 Inflable #1 Más Clickeado
+              </span>
+              {analyticsSummary.topProduct ? (
+                <div className="mt-2 flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={analyticsSummary.topProduct.image}
+                    alt={analyticsSummary.topProduct.title}
+                    className="w-12 h-12 rounded-xl object-cover border border-[#E2ECF2] shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#2D3440] truncate">
+                      {analyticsSummary.topProduct.title}
+                    </p>
+                    <p className="text-xs font-semibold text-[#1D7A46]">
+                      {analyticsSummary.topProduct.activeViewClicks}{" "}
+                      {analyticsSummary.topProduct.activeViewClicks === 1
+                        ? "clic"
+                        : "clics"}{" "}
+                      ({analyticsSummary.topProduct.categoryName})
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-[#7A8699]">
+                  Aún no hay clics registrados en esta vista.
+                </p>
+              )}
+            </div>
+
+            <div className="bg-white rounded-[24px] p-5 border border-[#E2ECF2] shadow-xs">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#6C7686]">
+                Clics en «Reservar WhatsApp»
+              </span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-[#1D7A46]">
+                  {analyticsSummary.totalWa}
+                </span>
+                <span className="text-xs font-medium text-[#1D7A46]">
+                  intenciones de reserva
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-[#6C7686]">
+                Clics en el botón de WhatsApp dentro de cada producto.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-[24px] p-5 border border-[#E2ECF2] shadow-xs">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#6C7686]">
+                Categoría con Mayor Interés
+              </span>
+              {analyticsSummary.topCategory ? (
+                <div className="mt-2">
+                  <p className="text-base font-bold text-[#2D3440]">
+                    {analyticsSummary.topCategory.label}
+                  </p>
+                  <p className="text-xs font-semibold text-[#2B8EAD] mt-1">
+                    {analyticsSummary.topCategory.clicks}{" "}
+                    {analyticsSummary.topCategory.clicks === 1
+                      ? "clic acumulado"
+                      : "clics acumulados"}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-[#7A8699]">
+                  Se mostrará en cuanto los visitantes naveguen por el catálogo.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Filter & Actions Toolbar */}
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E2ECF2] shadow-sm flex flex-col gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+              {/* City Filter Pills */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#6C7686] mr-1">
+                  Ciudad:
+                </span>
+                {(
+                  [
+                    { id: "all", label: "Todas las ciudades" },
+                    { id: "lima", label: "📍 Solo Lima" },
+                    { id: "arequipa", label: "📍 Solo Arequipa" },
+                  ] as const
+                ).map((cOpt) => (
+                  <button
+                    key={cOpt.id}
+                    type="button"
+                    onClick={() => setClickCityFilter(cOpt.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
+                      clickCityFilter === cOpt.id
+                        ? "bg-[#2B8EAD] text-white shadow-xs"
+                        : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
+                    }`}
+                  >
+                    {cOpt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search + Refresh + Reset */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <input
+                  type="search"
+                  value={clickSearchQuery}
+                  onChange={(e) => setClickSearchQuery(e.target.value)}
+                  placeholder="Buscar inflable..."
+                  aria-label="Buscar inflable en estadísticas"
+                  className="w-full sm:w-56 h-9 px-3.5 rounded-full border border-[#D7E3EC] bg-[#F9FBFD] text-xs text-[#2D3440] focus:outline-none focus:border-[#5CC2DE] focus:bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={fetchClicks}
+                  disabled={loadingClicks}
+                  className="h-9 px-4 rounded-full border border-[#D7E3EC] bg-[#F7FAFC] hover:bg-[#EBF5FA] text-[#2D3440] text-xs font-semibold transition cursor-pointer"
+                >
+                  {loadingClicks ? "Actualizando..." : "🔄 Actualizar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmResetAllClicks(true)}
+                  className="h-9 px-4 rounded-full border border-[#F3CCD3] bg-[#FFF5F7] hover:bg-[#FFE6EB] text-[#B4233C] text-xs font-semibold transition cursor-pointer"
+                >
+                  Reiniciar contadores
+                </button>
+              </div>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#F0F4F8]">
+              <button
+                type="button"
+                onClick={() => setClickCategoryFilter("all")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer ${
+                  clickCategoryFilter === "all"
+                    ? "bg-[#2D3440] text-white font-semibold"
+                    : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
+                }`}
+              >
+                Todas las categorías ({clickItems.length})
+              </button>
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.slug}
+                  type="button"
+                  onClick={() => setClickCategoryFilter(cat.slug)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition cursor-pointer ${
+                    clickCategoryFilter === cat.slug
+                      ? "bg-[#2D3440] text-white font-semibold"
+                      : "bg-[#F2F7FA] text-[#5A6577] hover:bg-[#E5F0F6]"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Ranking Table / List */}
+          <div className="mt-6 bg-white rounded-3xl border border-[#E2ECF2] shadow-xs overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#EBF1F5] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-[#FAFCFE]">
+              <div>
+                <h2 className="text-base font-semibold text-[#2D3440]">
+                  Ranking de Inflables Más Clickeados (Ordenado de Mayor a Menor)
+                </h2>
+                <p className="text-xs text-[#6C7686]">
+                  Te permite identificar qué tipo de juegos generan más interés
+                  en los visitantes para priorizar futuras adquisiciones.
+                </p>
+              </div>
+              <span className="text-xs font-medium text-[#7A8699]">
+                Nota: Los clics hechos mientras tienes sesión abierta en /admin
+                no se contabilizan.
+              </span>
+            </div>
+
+            <div className="divide-y divide-[#EFF4F8]">
+              {rankedAnalyticsItems.map((item, idx) => {
+                const maxViews = Math.max(
+                  1,
+                  rankedAnalyticsItems[0]?.activeViewClicks || 1
+                )
+                const barPercent =
+                  item.activeViewClicks > 0
+                    ? Math.max(
+                        6,
+                        Math.round((item.activeViewClicks / maxViews) * 100)
+                      )
+                    : 0
+                const rankBadge =
+                  idx === 0 && item.activeViewClicks > 0
+                    ? "🥇 1.°"
+                    : idx === 1 && item.activeViewClicks > 0
+                      ? "🥈 2.°"
+                      : idx === 2 && item.activeViewClicks > 0
+                        ? "🥉 3.°"
+                        : `${idx + 1}.°`
+
+                return (
+                  <div
+                    key={item.slug}
+                    className="px-5 sm:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#F9FBFD] transition"
+                  >
+                    {/* Left: Rank + Image + Title + Progress Bar */}
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                      <span
+                        className={`w-12 h-9 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
+                          idx < 3 && item.activeViewClicks > 0
+                            ? "bg-[#EBF5FA] text-[#2B8EAD]"
+                            : "bg-[#F2F6FA] text-[#6C7686]"
+                        }`}
+                      >
+                        {rankBadge}
+                      </span>
+
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-12 h-12 rounded-xl object-cover border border-[#E2ECF2] shrink-0"
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-semibold text-[#2D3440] truncate">
+                            {item.title}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-[#F2F7FA] text-[#5A6577] text-[11px] font-medium">
+                            {item.categoryName}
+                          </span>
+                        </div>
+
+                        {/* Visual Popularity Bar */}
+                        <div className="mt-2 w-full max-w-md h-2 rounded-full bg-[#EEF4F8] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-[#5CC2DE] to-[#2B8EAD] transition-all duration-300"
+                            style={{ width: `${barPercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Metrics Counters + Reset Single */}
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-5 shrink-0">
+                      <div className="px-3.5 py-2 rounded-2xl bg-[#F4F9FC] border border-[#DFECF4] text-center min-w-[110px]">
+                        <span className="block text-lg font-bold text-[#2D3440] leading-none">
+                          {item.activeViewClicks}
+                        </span>
+                        <span className="block text-[11px] font-semibold text-[#2B8EAD] mt-1">
+                          Clics al Inflable
+                        </span>
+                      </div>
+
+                      <div className="px-3.5 py-2 rounded-2xl bg-[#F3FAF6] border border-[#D5EFE0] text-center min-w-[115px]">
+                        <span className="block text-lg font-bold text-[#1D7A46] leading-none">
+                          {item.activeWaClicks}
+                        </span>
+                        <span className="block text-[11px] font-semibold text-[#1D7A46] mt-1">
+                          Clics WhatsApp
+                        </span>
+                      </div>
+
+                      <div className="text-right text-[11px] text-[#6C7686] min-w-[125px]">
+                        <p>
+                          <strong>Lima:</strong> {item.viewClicksLima} ·{" "}
+                          <strong>AQP:</strong> {item.viewClicksArequipa}
+                        </p>
+                        <p className="text-[#8A96A8] mt-0.5">
+                          {item.lastClickedAt > 0
+                            ? `Último: ${new Date(
+                                item.lastClickedAt
+                              ).toLocaleDateString("es-PE", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}`
+                            : "Sin clics aún"}
+                        </p>
+                      </div>
+
+                      {(item.totalViewClicks > 0 ||
+                        item.totalWhatsappClicks > 0) && (
+                        <button
+                          type="button"
+                          onClick={() => handleResetClicks(item.slug)}
+                          title="Reiniciar contador de este producto a 0"
+                          className="h-8 px-2.5 rounded-full border border-[#D7E3EC] text-[11px] font-semibold text-[#6C7686] hover:bg-[#FFF1F3] hover:text-[#B4233C] hover:border-[#F8C6D0] transition cursor-pointer"
+                        >
+                          ↺ 0
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Reset All Clicks Modal */}
+      {confirmResetAllClicks && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-[#19202A]/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setConfirmResetAllClicks(false)}
+        >
+          <div
+            className="w-full max-w-[420px] bg-white rounded-[26px] p-6 sm:p-7 shadow-2xl border border-[#E2ECF2] text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-[#2D3440]">
+              ¿Reiniciar todos los contadores a 0?
+            </h3>
+            <p className="text-xs text-[#6C7686] mt-2">
+              Esta acción pondrá en cero las estadísticas de clics de todos los
+              inflables para iniciar una nueva medición.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmResetAllClicks(false)}
+                className="h-10 px-5 rounded-full border border-[#D7E3EC] text-xs font-semibold text-[#5A6577] hover:bg-[#F2F7FA] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={resettingClicks}
+                onClick={() => handleResetClicks("all")}
+                className="h-10 px-5 rounded-full bg-[#B4233C] hover:bg-[#961B30] text-white text-xs font-semibold transition cursor-pointer"
+              >
+                {resettingClicks ? "Reiniciando..." : "Sí, reiniciar todo"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

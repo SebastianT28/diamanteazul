@@ -34,6 +34,15 @@ export interface ProductChangeRecord {
   updatedAt: number
 }
 
+export interface ProductClickStats {
+  slug: string
+  viewClicksLima: number
+  viewClicksArequipa: number
+  whatsappClicksLima: number
+  whatsappClicksArequipa: number
+  lastClickedAt: number
+}
+
 export interface AdminProductFormInput {
   slug?: string
   title: string
@@ -56,6 +65,7 @@ interface LocalStoreFile {
   adminUser: StoredAdminUser
   overrides: Record<string, ImageOverrideMeta>
   productChanges?: Record<string, ProductChangeRecord>
+  productClicks?: Record<string, ProductClickStats>
 }
 
 const LOCAL_STORE_PATH = path.join(process.cwd(), "data", "admin-store.json")
@@ -124,6 +134,17 @@ async function ensureMySqlSchema(): Promise<boolean> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `)
 
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS product_clicks (
+        slug VARCHAR(140) PRIMARY KEY,
+        view_clicks_lima INT NOT NULL DEFAULT 0,
+        view_clicks_arequipa INT NOT NULL DEFAULT 0,
+        whatsapp_clicks_lima INT NOT NULL DEFAULT 0,
+        whatsapp_clicks_arequipa INT NOT NULL DEFAULT 0,
+        last_clicked_at BIGINT NOT NULL DEFAULT 0
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `)
+
     const [rows] = await db.execute<mysql.RowDataPacket[]>(
       "SELECT COUNT(*) AS cnt FROM admin_users"
     )
@@ -155,6 +176,7 @@ async function readLocalStore(): Promise<LocalStoreFile> {
       },
       overrides: parsed.overrides ?? {},
       productChanges: parsed.productChanges ?? {},
+      productClicks: parsed.productClicks ?? {},
     }
   } catch {
     return {
@@ -165,6 +187,7 @@ async function readLocalStore(): Promise<LocalStoreFile> {
       },
       overrides: {},
       productChanges: {},
+      productClicks: {},
     }
   }
 }
@@ -858,6 +881,131 @@ export async function restoreBaseCatalogProduct(slug: string): Promise<void> {
       await db.execute("DELETE FROM site_products WHERE slug = ?", [slug])
     } catch (err) {
       console.error("[admin-db] Error restoring base product in MySQL:", err)
+    }
+  }
+}
+
+// ============================================================================
+// PRODUCT CLICKS ANALYTICS (TRACKING, RANKING & RESET)
+// ============================================================================
+
+export async function recordProductClick(
+  slug: string,
+  clickType: "view" | "whatsapp" = "view",
+  city: "lima" | "arequipa" = "lima"
+): Promise<void> {
+  const cleanSlug = slug.trim()
+  if (!cleanSlug) return
+  const now = Date.now()
+
+  // 1. Update local store
+  const local = await readLocalStore()
+  local.productClicks = local.productClicks ?? {}
+  const prev = local.productClicks[cleanSlug] ?? {
+    slug: cleanSlug,
+    viewClicksLima: 0,
+    viewClicksArequipa: 0,
+    whatsappClicksLima: 0,
+    whatsappClicksArequipa: 0,
+    lastClickedAt: 0,
+  }
+
+  if (clickType === "whatsapp") {
+    if (city === "arequipa") {
+      prev.whatsappClicksArequipa += 1
+    } else {
+      prev.whatsappClicksLima += 1
+    }
+  } else {
+    if (city === "arequipa") {
+      prev.viewClicksArequipa += 1
+    } else {
+      prev.viewClicksLima += 1
+    }
+  }
+  prev.lastClickedAt = now
+  local.productClicks[cleanSlug] = prev
+  await writeLocalStore(local)
+
+  // 2. Update MySQL if configured
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      const vLima = clickType === "view" && city === "lima" ? 1 : 0
+      const vAqp = clickType === "view" && city === "arequipa" ? 1 : 0
+      const wLima = clickType === "whatsapp" && city === "lima" ? 1 : 0
+      const wAqp = clickType === "whatsapp" && city === "arequipa" ? 1 : 0
+
+      await db.execute(
+        `INSERT INTO product_clicks (
+           slug, view_clicks_lima, view_clicks_arequipa, whatsapp_clicks_lima, whatsapp_clicks_arequipa, last_clicked_at
+         ) VALUES (?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           view_clicks_lima = view_clicks_lima + VALUES(view_clicks_lima),
+           view_clicks_arequipa = view_clicks_arequipa + VALUES(view_clicks_arequipa),
+           whatsapp_clicks_lima = whatsapp_clicks_lima + VALUES(whatsapp_clicks_lima),
+           whatsapp_clicks_arequipa = whatsapp_clicks_arequipa + VALUES(whatsapp_clicks_arequipa),
+           last_clicked_at = VALUES(last_clicked_at)`,
+        [cleanSlug, vLima, vAqp, wLima, wAqp, now]
+      )
+    } catch (err) {
+      console.error("[admin-db] Error recording product click in MySQL:", err)
+    }
+  }
+}
+
+export async function getProductClicksMap(): Promise<
+  Record<string, ProductClickStats>
+> {
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      const [rows] = await db.execute<mysql.RowDataPacket[]>(
+        `SELECT slug, view_clicks_lima, view_clicks_arequipa, whatsapp_clicks_lima, whatsapp_clicks_arequipa, last_clicked_at
+         FROM product_clicks`
+      )
+      const map: Record<string, ProductClickStats> = {}
+      for (const r of rows) {
+        const s = String(r.slug)
+        map[s] = {
+          slug: s,
+          viewClicksLima: Number(r.view_clicks_lima ?? 0),
+          viewClicksArequipa: Number(r.view_clicks_arequipa ?? 0),
+          whatsappClicksLima: Number(r.whatsapp_clicks_lima ?? 0),
+          whatsappClicksArequipa: Number(r.whatsapp_clicks_arequipa ?? 0),
+          lastClickedAt: Number(r.last_clicked_at ?? 0),
+        }
+      }
+      return map
+    } catch (err) {
+      console.error("[admin-db] Error reading product_clicks from MySQL:", err)
+    }
+  }
+
+  const local = await readLocalStore()
+  return local.productClicks ?? {}
+}
+
+export async function resetProductClicks(slug?: string): Promise<void> {
+  const local = await readLocalStore()
+  local.productClicks = local.productClicks ?? {}
+  if (!slug || slug === "all") {
+    local.productClicks = {}
+  } else {
+    delete local.productClicks[slug]
+  }
+  await writeLocalStore(local)
+
+  if (await ensureMySqlSchema()) {
+    try {
+      const db = getPool()
+      if (!slug || slug === "all") {
+        await db.execute("DELETE FROM product_clicks")
+      } else {
+        await db.execute("DELETE FROM product_clicks WHERE slug = ?", [slug])
+      }
+    } catch (err) {
+      console.error("[admin-db] Error resetting product_clicks in MySQL:", err)
     }
   }
 }

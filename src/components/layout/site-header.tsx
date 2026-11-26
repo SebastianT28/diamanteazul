@@ -9,6 +9,7 @@ import {
   buildWhatsAppUrl,
 } from "@/data/packages"
 import { useCity } from "@/lib/city-context"
+import { trackProductClick } from "@/lib/track-click"
 
 const TICKER_ITEMS = [
   { label: "Castillos Dreamy Pastel y a Color", color: "#5CC2DE" },
@@ -327,7 +328,10 @@ export function SiteHeader() {
                                     key={prod.slug}
                                     className="hbr-mega__card"
                                     href={`/paquetes/${prod.slug}`}
-                                    onClick={() => setMegaOpen(false)}
+                                    onClick={() => {
+                                      setMegaOpen(false)
+                                      trackProductClick(prod.slug, "view", city)
+                                    }}
                                   >
                                     <div className="hbr-mega__media">
                                       {(megaLoaded || megaOpen) && (

@@ -30,6 +30,15 @@ CREATE TABLE IF NOT EXISTS `site_products` (
   `updated_at` BIGINT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `product_clicks` (
+  `slug` VARCHAR(140) PRIMARY KEY,
+  `view_clicks_lima` INT NOT NULL DEFAULT 0,
+  `view_clicks_arequipa` INT NOT NULL DEFAULT 0,
+  `whatsapp_clicks_lima` INT NOT NULL DEFAULT 0,
+  `whatsapp_clicks_arequipa` INT NOT NULL DEFAULT 0,
+  `last_clicked_at` BIGINT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Usuario inicial:
 --   Usuario:    admin
 --   Contraseña: diamanteazul26_$

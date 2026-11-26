@@ -9,6 +9,7 @@ import {
   type InflatablePackage,
 } from "@/data/packages"
 import { useCity } from "@/lib/city-context"
+import { trackProductClick } from "@/lib/track-click"
 
 interface PackageDetailInteractiveProps {
   pkg: InflatablePackage
@@ -49,7 +50,8 @@ export function PackageDetailInteractive({
     setSelectedThumbIdx(0)
     setSelectedSizeIdx(defaultSizeIdx)
     setLightboxOpen(false)
-  }, [pkg.slug, defaultSizeIdx])
+    trackProductClick(pkg.slug, "view", city)
+  }, [pkg.slug, defaultSizeIdx, city])
 
   React.useEffect(() => {
     if (!lightboxOpen) return
@@ -486,6 +488,7 @@ export function PackageDetailInteractive({
               target="_blank"
               rel="noopener noreferrer"
               className="add-to-cart-whatsapp"
+              onClick={() => trackProductClick(pkg.slug, "whatsapp", city)}
             >
               <svg
                 viewBox="0 0 24 24"
@@ -835,6 +838,7 @@ export function PackageDetailInteractive({
             target="_blank"
             rel="noopener noreferrer"
             className="hbc-sticky-atc__btn"
+            onClick={() => trackProductClick(pkg.slug, "whatsapp", city)}
           >
             <span>Reservar WhatsApp</span>
           </a>

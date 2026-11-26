@@ -9,6 +9,7 @@ import {
   type ProductCategorySlug,
 } from "@/data/packages";
 import { CITY_CONFIG, useCity, type CitySlug } from "@/lib/city-context";
+import { trackProductClick } from "@/lib/track-click";
 
 type FilterCategory = "all" | ProductCategorySlug;
 
@@ -562,6 +563,9 @@ export function HomeInteractive({
                 <Link
                   className="hbr-catalog-card__link"
                   href={`/paquetes/${pkg.slug}`}
+                  onClick={() =>
+                    trackProductClick(pkg.slug, "view", effectiveCity)
+                  }
                 >
                   <div className="hbr-catalog-card__image">
                     {pkg.isNew && (
