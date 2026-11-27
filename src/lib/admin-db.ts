@@ -614,12 +614,18 @@ export async function saveUploadedSlotImage(
     // Non-fatal if original doesn't exist
   }
 
-  // 2. Write new image to public/images/... on disk so static file is updated immediately
+  // 2. Write new image to public/images/... on disk (or /tmp on serverless) so static file is updated immediately
   try {
     await fs.mkdir(path.dirname(publicFilePath), { recursive: true })
     await fs.writeFile(publicFilePath, buffer)
-  } catch (err) {
-    console.warn("[admin-db] Could not write to public folder directly:", err)
+  } catch {
+    try {
+      const tmpSlotDir = path.join(os.tmpdir(), "da-slot-images")
+      await fs.mkdir(tmpSlotDir, { recursive: true })
+      await fs.writeFile(path.join(tmpSlotDir, `${slot.key}.bin`), buffer)
+    } catch {
+      // Ignore
+    }
   }
 
   const meta: ImageOverrideMeta = {
@@ -630,7 +636,7 @@ export async function saveUploadedSlotImage(
   }
 
   // 3. Save in local store metadata
-  const local = await readLocalStore()
+  const local = await readLocalStore(true)
   local.overrides[slot.key] = meta
   await writeLocalStore(local)
 
@@ -720,6 +726,13 @@ export async function getSlotImageBinary(
       }
     }
     try {
+      const tmpProdPath = path.join(os.tmpdir(), "da-prod-images", `${prodSlug}.webp`)
+      const buffer = await fs.readFile(tmpProdPath)
+      return { buffer, mimeType: "image/webp" }
+    } catch {
+      // Fallback to public/images/catalogo
+    }
+    try {
       const diskPath = path.join(
         process.cwd(),
         "public",
@@ -755,6 +768,14 @@ export async function getSlotImageBinary(
     } catch (err) {
       console.error("[admin-db] Error fetching binary from MySQL:", err)
     }
+  }
+
+  try {
+    const tmpSlotPath = path.join(os.tmpdir(), "da-slot-images", `${slot.key}.bin`)
+    const buffer = await fs.readFile(tmpSlotPath)
+    return { buffer, mimeType: "image/webp" }
+  } catch {
+    // Fallback to public/
   }
 
   try {
@@ -1063,8 +1084,14 @@ export async function saveCatalogProduct(
     try {
       await fs.mkdir(path.dirname(diskPath), { recursive: true })
       await fs.writeFile(diskPath, imageBuffer)
-    } catch (err) {
-      console.warn("[admin-db] Could not write product image to public/:", err)
+    } catch {
+      try {
+        const tmpProdDir = path.join(os.tmpdir(), "da-prod-images")
+        await fs.mkdir(tmpProdDir, { recursive: true })
+        await fs.writeFile(path.join(tmpProdDir, `${targetSlug}.webp`), imageBuffer)
+      } catch {
+        // Ignore
+      }
     }
     finalImagePath = `/api/media/prod-img-${targetSlug}?v=${now}`
   }
@@ -1079,7 +1106,7 @@ export async function saveCatalogProduct(
   )
 
   // Save in local store
-  const local = await readLocalStore()
+  const local = await readLocalStore(true)
   local.productChanges = local.productChanges ?? {}
   local.productChanges[targetSlug] = {
     slug: targetSlug,

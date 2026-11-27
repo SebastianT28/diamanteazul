@@ -261,7 +261,13 @@ export function HomeInteractive({
   initialCity?: CitySlug;
 } = {}) {
   const { city, switchCity, catalogProducts } = useCity();
-  const effectiveCity: CitySlug = city;
+  const [clientMounted, setClientMounted] = useState(false);
+
+  useEffect(() => {
+    setClientMounted(true);
+  }, []);
+
+  const effectiveCity: CitySlug = clientMounted ? city : (initialCity ?? city);
   const activeCityConfig = CITY_CONFIG[effectiveCity];
 
   const handleExploreCityCatalog = (targetCity: CitySlug) => {
@@ -271,8 +277,6 @@ export function HomeInteractive({
       catalogEl.scrollIntoView({ behavior: "smooth" });
     }
   };
-
-  void initialCity;
 
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [isMobileUsps, setIsMobileUsps] = useState(false);

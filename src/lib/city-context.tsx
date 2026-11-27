@@ -117,7 +117,18 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true
 
-    // If user explicitly navigated to /arequipa route, set Arequipa
+    // Check if user already made an explicit manual selection in this session
+    try {
+      const manualCity = window.sessionStorage.getItem(SESSION_MANUAL_KEY)
+      if (manualCity === "lima" || manualCity === "arequipa") {
+        setStoredCity(manualCity)
+        return
+      }
+    } catch {
+      // Ignore storage errors
+    }
+
+    // If user explicitly entered via /arequipa route without prior manual override, set Arequipa
     if (pathname === "/arequipa" || pathname.startsWith("/arequipa/")) {
       setStoredCity("arequipa")
       try {
@@ -128,13 +139,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    // Check if user already made an explicit manual selection in this session
     try {
-      const manualCity = window.sessionStorage.getItem(SESSION_MANUAL_KEY)
-      if (manualCity === "lima" || manualCity === "arequipa") {
-        setStoredCity(manualCity)
-        return
-      }
       const cachedGeo = window.sessionStorage.getItem(SESSION_GEO_KEY)
       if (cachedGeo === "lima" || cachedGeo === "arequipa") {
         setStoredCity(cachedGeo)
@@ -198,25 +203,28 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
         (pathname === "/arequipa" || pathname?.startsWith("/arequipa/")) &&
         nextCity === "lima"
       ) {
-        try {
-          window.history.replaceState(null, "", "/")
-        } catch {
-          router.push("/")
-        }
+        router.replace("/", { scroll: false })
       }
     },
     [pathname, router]
   )
 
-  const value = useMemo<CityContextValue>(
-    () => ({
+  const value = useMemo<CityContextValue>(() => {
+    const baseConfig = CITY_CONFIG[activeCity]
+    const currentHomePath: "/" | "/arequipa" =
+      pathname === "/arequipa" || pathname?.startsWith("/arequipa/")
+        ? "/arequipa"
+        : "/"
+    return {
       city: activeCity,
-      cityConfig: CITY_CONFIG[activeCity],
+      cityConfig: {
+        ...baseConfig,
+        homePath: currentHomePath,
+      },
       switchCity,
       catalogProducts,
-    }),
-    [activeCity, switchCity, catalogProducts]
-  )
+    }
+  }, [activeCity, pathname, switchCity, catalogProducts])
 
   // Live Catalog Products Synchronizer (reflects additions, edits, and deletions made in /admin)
   useEffect(() => {
