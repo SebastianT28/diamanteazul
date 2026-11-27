@@ -260,9 +260,19 @@ export function HomeInteractive({
 }: {
   initialCity?: CitySlug;
 } = {}) {
-  const { city, catalogProducts } = useCity();
-  const effectiveCity: CitySlug = initialCity ?? city;
+  const { city, switchCity, catalogProducts } = useCity();
+  const effectiveCity: CitySlug = city;
   const activeCityConfig = CITY_CONFIG[effectiveCity];
+
+  const handleExploreCityCatalog = (targetCity: CitySlug) => {
+    switchCity(targetCity);
+    const catalogEl = document.getElementById("hbr-home-range");
+    if (catalogEl) {
+      catalogEl.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  void initialCity;
 
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("all");
   const [isMobileUsps, setIsMobileUsps] = useState(false);
@@ -471,9 +481,34 @@ export function HomeInteractive({
               Gran felicidad.
             </h1>
             <p>{activeCityConfig.heroSubtitle}</p>
-            <a href="#hbr-home-range" className="hbr-hero-button">
-              Explorar Catálogo
-            </a>
+            <div
+              className="hbr-hero-actions"
+              role="group"
+              aria-label="Explorar catálogo por ciudad"
+            >
+              <button
+                type="button"
+                className={`hbr-hero-button ${
+                  effectiveCity === "lima" ? "is-active" : ""
+                }`}
+                aria-pressed={effectiveCity === "lima"}
+                onClick={() => handleExploreCityCatalog("lima")}
+              >
+                <span className="hbr-hero-button__dot" aria-hidden="true" />
+                <span>Explorar catálogo Lima</span>
+              </button>
+              <button
+                type="button"
+                className={`hbr-hero-button ${
+                  effectiveCity === "arequipa" ? "is-active" : ""
+                }`}
+                aria-pressed={effectiveCity === "arequipa"}
+                onClick={() => handleExploreCityCatalog("arequipa")}
+              >
+                <span className="hbr-hero-button__dot" aria-hidden="true" />
+                <span>Explorar catálogo Arequipa</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>

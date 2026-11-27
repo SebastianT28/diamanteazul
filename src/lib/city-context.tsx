@@ -76,6 +76,8 @@ export const CITY_CONFIG: Record<CitySlug, CitySeoConfig> = {
 }
 
 const STORAGE_KEY = "da_active_city"
+const SESSION_MANUAL_KEY = "da_manual_city_selected"
+const SESSION_GEO_KEY = "da_geo_detected_city"
 
 interface CityContextValue {
   city: CitySlug
@@ -109,58 +111,98 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
   const [catalogProducts, setCatalogProducts] =
     useState<InflatablePackage[]>(PACKAGES_DATA)
 
-  const routeCity: CitySlug | null = useMemo(() => {
-    if (!pathname) return null
-    if (pathname === "/arequipa" || pathname.startsWith("/arequipa/")) {
-      return "arequipa"
-    }
-    if (pathname === "/") {
-      return "lima"
-    }
-    return null
-  }, [pathname])
-
   const [storedCity, setStoredCity] = useState<CitySlug>("lima")
 
+  // 1. Initial City Detection: Manual choice > Explicit /arequipa route > Silent Geo-IP Proximity (Lima vs Arequipa)
   useEffect(() => {
-    if (routeCity) {
-      setStoredCity(routeCity)
+    let active = true
+
+    // If user explicitly navigated to /arequipa route, set Arequipa
+    if (pathname === "/arequipa" || pathname.startsWith("/arequipa/")) {
+      setStoredCity("arequipa")
       try {
-        window.localStorage.setItem(STORAGE_KEY, routeCity)
+        window.localStorage.setItem(STORAGE_KEY, "arequipa")
       } catch {
-        // Ignore storage errors
+        // Ignore
       }
       return
     }
 
+    // Check if user already made an explicit manual selection in this session
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (saved === "arequipa" || saved === "lima") {
-        setStoredCity(saved)
+      const manualCity = window.sessionStorage.getItem(SESSION_MANUAL_KEY)
+      if (manualCity === "lima" || manualCity === "arequipa") {
+        setStoredCity(manualCity)
+        return
+      }
+      const cachedGeo = window.sessionStorage.getItem(SESSION_GEO_KEY)
+      if (cachedGeo === "lima" || cachedGeo === "arequipa") {
+        setStoredCity(cachedGeo)
+        return
       }
     } catch {
       // Ignore storage errors
     }
-  }, [routeCity])
 
-  const activeCity: CitySlug = routeCity ?? storedCity
+    // Silent proximity detection via /api/geo (Haversine distance to Lima vs Arequipa)
+    ;(async () => {
+      try {
+        const res = await fetch("/api/geo", { cache: "no-store" })
+        if (!res.ok) return
+        const data = (await res.json()) as { city?: CitySlug }
+        if (!active) return
+        if (data.city === "lima" || data.city === "arequipa") {
+          // Only apply if user hasn't clicked a city button in the meantime
+          const manualNow = window.sessionStorage.getItem(SESSION_MANUAL_KEY)
+          if (!manualNow) {
+            setStoredCity(data.city)
+            try {
+              window.sessionStorage.setItem(SESSION_GEO_KEY, data.city)
+              window.localStorage.setItem(STORAGE_KEY, data.city)
+            } catch {
+              // Ignore
+            }
+          }
+        }
+      } catch {
+        // Fallback to saved localStorage preference if offline
+        try {
+          const saved = window.localStorage.getItem(STORAGE_KEY)
+          if (saved === "arequipa" || saved === "lima") {
+            setStoredCity(saved)
+          }
+        } catch {
+          // Ignore
+        }
+      }
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [pathname])
+
+  const activeCity: CitySlug = storedCity
 
   const switchCity = useCallback(
     (nextCity: CitySlug) => {
       setStoredCity(nextCity)
       try {
+        window.sessionStorage.setItem(SESSION_MANUAL_KEY, nextCity)
         window.localStorage.setItem(STORAGE_KEY, nextCity)
       } catch {
         // Ignore storage errors
       }
 
-      if (pathname === "/" && nextCity === "arequipa") {
-        router.push("/arequipa")
-      } else if (
+      if (
         (pathname === "/arequipa" || pathname?.startsWith("/arequipa/")) &&
         nextCity === "lima"
       ) {
-        router.push("/")
+        try {
+          window.history.replaceState(null, "", "/")
+        } catch {
+          router.push("/")
+        }
       }
     },
     [pathname, router]

@@ -1541,12 +1541,20 @@ a.hbr-mnav__help {
   box-sizing: border-box;
 }
 
+.video-hero.hbr-hero-v2 .hbr-hero-actions,
 .video-hero.hbr-hero-v2 .hbr-hero-button {
   pointer-events: auto;
 }
 
+.video-hero.hbr-hero-v2 .hbr-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
 .video-hero.hbr-hero-v2 .hbr-hero-copy {
-  max-width: 660px;
+  max-width: 720px;
 }
 
 .video-hero.hbr-hero-v2 .video-overlay h1 {
@@ -1576,25 +1584,53 @@ a.hbr-mnav__help {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 18px 45px;
+  gap: 10px;
+  min-height: 50px;
+  padding: 16px 28px;
   border-radius: 999px;
-  border: 0;
-  background: var(--da-white);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   color: var(--da-ink) !important;
   font-family: inherit;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.1;
   text-decoration: none !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-  transition: background 0.2s, transform 0.2s;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.video-hero.hbr-hero-v2 .hbr-hero-button__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.video-hero.hbr-hero-v2 .hbr-hero-button.is-active {
+  background: var(--da-white);
+  border-color: var(--da-sky);
+  box-shadow: 0 0 0 3px rgba(100, 196, 237, 0.34), 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.video-hero.hbr-hero-v2 .hbr-hero-button.is-active .hbr-hero-button__dot {
+  background: #059ce2;
+  box-shadow: 0 0 0 3px rgba(5, 156, 226, 0.22);
 }
 
 .video-hero.hbr-hero-v2 .hbr-hero-button:hover {
   background: var(--da-sky);
+  border-color: var(--da-sky);
   color: var(--da-white) !important;
   transform: translateY(-1px);
+}
+
+.video-hero.hbr-hero-v2 .hbr-hero-button:hover .hbr-hero-button__dot {
+  background: var(--da-white);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28);
 }
 
 /* USP Wave Band under Hero (.hbr-home-usps) */
@@ -1707,8 +1743,13 @@ a.hbr-mnav__help {
     margin-bottom: 18px;
   }
 
+  .video-hero.hbr-hero-v2 .hbr-hero-actions {
+    gap: 10px;
+  }
+
   .video-hero.hbr-hero-v2 .hbr-hero-button {
-    padding: 12px 24px;
+    min-height: 44px;
+    padding: 11px 18px;
     font-size: 14px;
   }
 
