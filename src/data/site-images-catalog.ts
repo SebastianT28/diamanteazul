@@ -26,7 +26,7 @@ const HOME_SLOTS: EditableImageSlot[] = [
     title: "Logo Oficial Diamante Azul",
     subtitle: "Cabecera principal del sitio web (Desktop y Móvil)",
     path: "/images/home/logo_diamante_azul.webp",
-    recommendedSize: "520 × 176 px (fondo transparente)",
+    recommendedSize: "700 × 186 px (en una sola línea, fondo transparente)",
     recommendedFormat: "Webp",
   },
   {

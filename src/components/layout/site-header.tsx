@@ -398,8 +398,8 @@ export function SiteHeader() {
               <Image
                 src="/images/home/logo_diamante_azul.webp"
                 alt="Diamante Azul"
-                width={172}
-                height={58}
+                width={254}
+                height={66}
                 priority
                 className="hbr-header__logo-img"
               />

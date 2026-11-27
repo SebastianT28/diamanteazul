@@ -306,7 +306,7 @@ body {
 .hbr-header .hbr-header__pill {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 160px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 20px;
   min-height: 94px;
@@ -466,8 +466,8 @@ body {
 }
 
 .hbr-header__logo-img {
-  width: 172px;
-  height: 58px;
+  width: 254px;
+  height: 66px;
   object-fit: contain;
   display: block;
 }
@@ -963,6 +963,11 @@ body {
   .hbr-header__toggle {
     display: inline-flex !important;
   }
+
+  .hbr-header__logo-img {
+    width: 234px;
+    height: 60px;
+  }
 }
 
 @media (max-width: 991px) {
@@ -982,10 +987,10 @@ body {
   }
 
   .hbr-header .hbr-header__pill {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: auto 1fr auto;
     min-height: 78px;
     padding: 10px 14px !important;
-    gap: 6px;
+    gap: 8px;
   }
 
   .hbr-header__right {
@@ -993,8 +998,8 @@ body {
   }
 
   .hbr-header__logo-img {
-    width: 136px;
-    height: 46px;
+    width: 194px;
+    height: 50px;
   }
 
   .hbr-header__toggle-label {
@@ -1014,6 +1019,13 @@ body {
   .hbr-city-dropdown__trigger {
     width: 36px;
     height: 36px;
+  }
+}
+
+@media (max-width: 374px) {
+  .hbr-header__logo-img {
+    width: 174px;
+    height: 45px;
   }
 }
 
